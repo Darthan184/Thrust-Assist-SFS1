@@ -16,13 +16,53 @@ namespace ThrustAssistMod
                 double angle =  NormaliseAngle(location.position.AngleDegrees - rocket.GetRotation());
                 double ascentAcceleration = accelerationMax*System.Math.Cos(System.Math.PI*angle/180);
                 double ascentVelocity = location.VerticalVelocity;
-                double gravity = location.planet.GetGravity(location.Radius);
+                double gravity = -location.planet.GetGravity(location.Radius);
                 double height =  location.TerrainHeight - rocket.GetSizeRadius();
+                double targetDistance = ThrustAssistMod.UI.TargetHeight-height;
+                double targetAcceleration = 0;
+                double throttle=0;
 
-                ThrustAssistMod.UI.AscentAcceleration = ascentAcceleration;
-                ThrustAssistMod.UI.AscentVelocity = ascentVelocity;
-                ThrustAssistMod.UI.Gravity = gravity;
-                ThrustAssistMod.UI.Height = height;
+                if (System.Math.Abs(targetDistance)<1)
+                {
+                    targetAcceleration=-gravity;
+                }
+                else if (System.Math.Sign(ascentVelocity)== System.Math.Sign(targetDistance))
+                {
+                    targetAcceleration = -2*ascentVelocity*ascentVelocity/targetDistance;
+                }
+                else if (targetDistance>0)
+                {
+                    targetAcceleration=ascentAcceleration+gravity;
+                }
+                else
+                {
+                    targetAcceleration=gravity-ascentAcceleration;
+                }
+
+                if (ascentAcceleration<0.001)
+                {
+                    throttle = 0;
+                }
+                else
+                {
+                    throttle = (targetAcceleration-gravity)/ascentAcceleration;
+                }
+
+                if (throttle>1)
+                {
+                    throttle = 1;
+                }
+                else if (throttle<1)
+                {
+                    throttle = 0;
+                }
+
+                ThrustAssistMod.UI.Throttle = throttle;
+
+//~                 ThrustAssistMod.UI.AscentAcceleration = ascentAcceleration;
+//~                 ThrustAssistMod.UI.AscentVelocity = ascentVelocity;
+//~                 ThrustAssistMod.UI.Gravity = gravity;
+//~                 ThrustAssistMod.UI.Height = height;
             }
         }
     }
