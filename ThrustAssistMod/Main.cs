@@ -42,7 +42,8 @@
         public override void Load()
         {
             ThrustAssistMod.SettingsManager.Load();
-            ModLoader.Helpers.SceneHelper.OnWorldSceneLoaded += UI.ShowGUI;
+            UnityEngine.GameObject.DontDestroyOnLoad((ThrustAssistMod.UI.updater = new UnityEngine.GameObject("Thrust Assist-Updater").AddComponent<ThrustAssistMod.Updater>()).gameObject);
+            ModLoader.Helpers.SceneHelper.OnWorldSceneLoaded += ThrustAssistMod.UI.ShowGUI;
         }
     }
 }

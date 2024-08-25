@@ -15,5 +15,17 @@ FAIL: setup cli build
 
 DONE: initial build (using visual studio)
 DONE: initial test
-    window movable and position is stored and retreived from settings
+    window is movable and position is stored and retreived from settings
 
+SKIP: identify method to patch
+    SFS.World.Rocket
+        contains SFS.World.Throttle thottle;
+
+    SFS.World.Throttle
+        contains void UpdateThrottle()
+
+DONE: attempt using Info Overload method to get rocket info
+    can also be used to set thrust
+
+DONE: attempt to get values needed for calc
+    height is COM height

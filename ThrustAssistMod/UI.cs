@@ -3,10 +3,48 @@
     public class UI
     {
         // Create a GameObject for your window to attach to.
-        static UnityEngine.GameObject windowHolder;
+        private static UnityEngine.GameObject windowHolder;
 
         // Random window ID to avoid conflicts with other mods.
-        static readonly int MainWindowID = SFS.UI.ModGUI.Builder.GetRandomID();
+        private static readonly int MainWindowID = SFS.UI.ModGUI.Builder.GetRandomID();
+
+        private static SFS.UI.ModGUI.Label _ascentAcceleration_Label;
+        private static SFS.UI.ModGUI.Label _ascentVelocity_Label;
+        private static SFS.UI.ModGUI.Label _gravity_Label;
+        private static SFS.UI.ModGUI.Label _height_Label;
+        public static ThrustAssistMod.Updater updater;
+
+        public static double AscentAcceleration
+        {
+            set
+            {
+                _ascentAcceleration_Label.Text = string.Format("Ascent A: {0:N2} m/s^2",value);
+            }
+        }
+
+        public static double AscentVelocity
+        {
+            set
+            {
+                _ascentVelocity_Label.Text = string.Format("Ascent V: {0:N2} m/s",value);
+            }
+        }
+
+        public static double Gravity
+        {
+            set
+            {
+                _gravity_Label.Text = string.Format("Gravity: {0:N2} m/s^2",value);
+            }
+        }
+
+        public static double Height
+        {
+            set
+            {
+                _height_Label.Text = string.Format("Height: {0:N1} m",value);
+            }
+        }
 
         /*
         Call this method when you want to show your UI.
@@ -26,15 +64,22 @@
                 ThrustAssistMod.SettingsManager.settings.windowPosition = UnityEngine.Vector2Int.RoundToInt(window.Position);
                 ThrustAssistMod.SettingsManager.Save();
             };
-            SFS.UI.ModGUI.Builder.CreateButtonWithLabel(window, 290, 50, 0, 0, "Button Label", "Button Text", ButtonMethod);
-        }
 
-        /*
-        Method to pass into the button element to give it functionality
-        */
-        static void ButtonMethod()
-        {
-            SFS.UI.MsgDrawer.main.Log("Hello world");
+            _gravity_Label = SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 20, 0, 0, "Gravity: -");
+            _gravity_Label.AutoFontResize=false;
+            _gravity_Label.FontSize=25;
+
+            _height_Label = SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 20, 0, 0, "Height: -");
+            _height_Label.AutoFontResize=false;
+            _height_Label.FontSize=25;
+
+            _ascentVelocity_Label = SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 20, 0, 0, "Ascent V: -");
+            _ascentVelocity_Label.AutoFontResize=false;
+            _ascentVelocity_Label.FontSize=25;
+
+            _ascentAcceleration_Label = SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30, 0, 0, "Ascent A: -");
+            _ascentAcceleration_Label.AutoFontResize=false;
+            _ascentAcceleration_Label.FontSize=25;
         }
     }
 }
