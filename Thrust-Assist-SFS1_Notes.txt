@@ -1,0 +1,19 @@
+Thrust Assist Mod Notes
+
+DONE: Setup Git Hub Repository
+DONE: setup dark theme for Scite
+DONE: VS Create using mod creation notes
+    https://jmnet.one/sfs/forum/index.php?threads/mod-creation-getting-started.8880/
+DONE: add full path to all clas names and remove all "using" statements
+    - code now editable using Scite
+
+FAIL: setup cli build
+    C:\Windows\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe
+    https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference?view=vs-2022
+
+    does not work msbuild cersion incpmpatibility
+
+DONE: initial build (using visual studio)
+DONE: initial test
+    window movable and position is stored and retreived from settings
+
