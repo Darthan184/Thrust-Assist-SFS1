@@ -28,4 +28,48 @@ DONE: attempt using Info Overload method to get rocket info
     can also be used to set thrust
 
 DONE: attempt to get values needed for calc
-    height is COM height
+
+DONE: perform calculation
+    S^2 = v^2 * t^2
+    S = 0.5*a*t^2
+
+    S = v^2/(0.5*a)
+    0.5*a = v^2/S
+    a = 2*v^2/S
+
+    throttle*ascentAcceleration+gravity=target
+    throttle*ascentAcceleration=target-gravity
+    throttle=(target-gravity)/ascentAcceleration
+
+    slider does not work, have created  _UpDownValueLog class to omnlemenr an equivalent
+    add 'Time' display then UI ready
+
+DONE: test
+    DONE: Moon
+        DONE: surface to 100m hover, min throttle 50%
+        DONE: 100m hover to surface, min throttle 1%
+        DONE: 100m hover to surface, min throttle 50%
+        DONE: min throttle 100%
+        DONE: orbit to 40m hover  min throttle 79%
+            - engines dont start in orbit
+                - state as limitation?
+            - sub- orbit time estimate is too high
+                - now only have time estimate when engines are on
+                - removed time display
+            - on descent, stutters - seems OK
+            - initial dV=3118.2 , orbit vel=339.8 , dV landed = 2625.6, used =  492.6
+        DONE: orbit to land min throttle 100%
+            - engine might not start if 1m is targeted from initial sub-orbit - sugg target 40m (the default) instead, dV landed = 2663.3 used =454.9
+
+    DONE: test on Mercury
+        orbit v=619.4, need to set 10 deg above retrograde
+        dV on surface=2291.7  used=826.5 (excess 207.1)
+
+        works, also hover manouver to mountain top
+
+DONE: release build
+TBD: create documentaion
+TBD: create release
+TBD: make public
+TBD: post
+

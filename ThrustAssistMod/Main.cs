@@ -44,6 +44,7 @@
             ThrustAssistMod.SettingsManager.Load();
             UnityEngine.GameObject.DontDestroyOnLoad((ThrustAssistMod.UI.updater = new UnityEngine.GameObject("Thrust Assist-Updater").AddComponent<ThrustAssistMod.Updater>()).gameObject);
             ModLoader.Helpers.SceneHelper.OnWorldSceneLoaded += ThrustAssistMod.UI.ShowGUI;
+            ModLoader.Helpers.SceneHelper.OnWorldSceneUnloaded += ThrustAssistMod.UI.GUIInActive;
         }
     }
 }
