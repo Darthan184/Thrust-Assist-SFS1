@@ -160,6 +160,8 @@
         public static void ChangeAssistOn()
         {
             AssistOn=!_assistOn;
+
+            if (!_assistOn) ThrustAssistMod.Updater.SwitchOff();
         }
     }
 }

@@ -7,7 +7,7 @@
         public override string DisplayName => "Thrust Assist";
         public override string Author => "Darthan";
         public override string MinimumGameVersionNecessary => "1.5.10.2";
-        public override string ModVersion => "v0.1";
+        public override string ModVersion => "v0.2";
         public override string Description => "Thrust Assistance Module";
         public override System.Collections.Generic.Dictionary<string, string> Dependencies { get; } =
             new System.Collections.Generic.Dictionary<string, string> { { "UITools", "1.1.5" } };

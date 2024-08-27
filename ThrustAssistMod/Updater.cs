@@ -6,11 +6,32 @@ namespace ThrustAssistMod
     {
         private static double NormaliseAngle(double input) => ((input + 540) % 360) - 180;
         private static double lastTime=0;
+        private const double timeStep=0.2;
 
+        internal static void SwitchOff()
+        {
+            string tracePoint = "S-01";
+
+            if (ThrustAssistMod.UI.IsActive)
+            {
+                try
+                {
+                    if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket)
+                    {
+                        rocket.throttle.throttlePercent.Value=1;
+                        rocket.throttle.throttleOn.Value=false;
+                    }
+                }
+                catch (System.Exception excp)
+                {
+                    UnityEngine.Debug.LogErrorFormat("[ThrustAssistMod.Updater.AssistOff-{0}] {1}", tracePoint ,excp.ToString());
+                }
+            }
+        }
 
         private void Update()
         {
-            string tracePoint = "S-01";
+            string tracePoint = "S-02";
 
             if (ThrustAssistMod.UI.IsActive)
             {
@@ -21,7 +42,7 @@ namespace ThrustAssistMod
 
                     if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket && ThrustAssistMod.UI.AssistOn)
                     {
-                        if (thisTime>lastTime+0.2)
+                        if (thisTime>lastTime+timeStep)
                         {
                             lastTime=thisTime;
 
@@ -43,11 +64,7 @@ namespace ThrustAssistMod
                             double targetDeceleration =  -2*ascentVelocity*ascentVelocity/targetDistance;
                             double throttle=0;
 
-                            if (height<1 && targetHeight<1.5)
-                            {
-                                targetAcceleration=0;
-                            }
-                            if (System.Math.Abs(targetDistance)<1)
+                            if (System.Math.Abs(targetDistance)<1&& targetHeight>1)
                             {
                                 targetAcceleration=-gravity;
                             }
@@ -82,6 +99,11 @@ namespace ThrustAssistMod
                                 }
                             }
 
+                            if (targetHeight<1.5 && targetAcceleration*timeStep + ascentVelocity >-minVelocity)
+                            {
+                                targetAcceleration = - (ascentVelocity+minVelocity)/timeStep;
+                            }
+
                             if (maxAscentAcceleration<0.001)
                             {
                                 throttle = 0;
@@ -101,15 +123,7 @@ namespace ThrustAssistMod
                             }
 
                             rocket.throttle.throttlePercent.Value=(float)throttle;
-
-                            if (targetHeight<1.5)
-                            {
-                                rocket.throttle.throttleOn.Value=(throttle>=minThrottle-0.00001 && -ascentVelocity>minVelocity );
-                            }
-                            else
-                            {
-                                rocket.throttle.throttleOn.Value=(throttle>=minThrottle-0.00001);
-                            }
+                            rocket.throttle.throttleOn.Value=(throttle>=minThrottle-0.00001);
                         }
                     }
                 }

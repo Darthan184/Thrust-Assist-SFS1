@@ -68,8 +68,24 @@ DONE: test
         works, also hover manouver to mountain top
 
 DONE: release build
+NOTE: issues
+    landing V should be set by adjusting throttle (not stopping and starting them) sugg detect if vel will be too low on next check and adjust thrust to make it hit targe vel on next check
+    orbital needs a target position - use to determine distance whch can detering tgangental thrust
+    add orbit centifgate force to as well as gravity
+        a = (v^2)/r
+    version s/b 0.2 ? (1.0 for a feature complete release) sugg landing at a target location is workin
+
+DONE: landing V set by adjusting throttle
+    DONE: code
+    DONE: build
+    DONE: test
+
+TBD: support for starting from orbit?
+
 TBD: create documentaion
 TBD: create release
+TBD: when release path is known can uncomment auto update data
+    - current expected path https://github.com/Darthan184/Thrust-Assist-SFS1/releases/latest/download/ThrustAssistMod.dll
 TBD: make public
 TBD: post
 
