@@ -61,7 +61,13 @@ namespace ThrustAssistMod
                             double height =  location.TerrainHeight - rocket.GetSizeRadius();
                             double targetDistance = targetHeight-height;
                             double targetAcceleration = 0;
-                            double targetDeceleration =  -2*ascentVelocity*ascentVelocity/targetDistance;
+                            double targetDeceleration =  -ascentVelocity*ascentVelocity/targetDistance;
+                            double targetAscentVelocity =  (maxAscentAcceleration>gravity)
+                                ?System.Math.Sqrt
+                                    (
+                                        0.8*(maxAscentAcceleration-gravity)*System.Math.Abs(targetDistance)
+                                    )*System.Math.Sign(targetDistance)
+                                :0;
                             double throttle=0;
 
                             if (System.Math.Abs(targetDistance)<1&& targetHeight>1)
@@ -98,6 +104,8 @@ namespace ThrustAssistMod
                                     targetAcceleration = targetDeceleration;
                                 }
                             }
+
+                            if (targetAscentVelocity<0 && -targetAscentVelocity>minVelocity)  minVelocity= -targetAscentVelocity;
 
                             if (targetHeight<1.5 && targetAcceleration*timeStep + ascentVelocity >-minVelocity)
                             {
