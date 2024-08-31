@@ -33,9 +33,9 @@ DONE: perform calculation
     S^2 = v^2 * t^2
     S = 0.5*a*t^2
 
-    S = v^2/(0.5*a)
-    0.5*a = v^2/S
-    a = 2*v^2/S
+    S = -2*v^2/a
+    a = -2*v^2/S
+    v=sqrt(-aS/2)
 
     throttle*ascentAcceleration+gravity=target
     throttle*ascentAcceleration=target-gravity
@@ -79,6 +79,14 @@ DONE: landing V set by adjusting throttle
     DONE: code
     DONE: build
     DONE: test
+
+>>>: re work calculations, base on target velocity
+    DONE: code
+    DONE: build
+    >>>: test
+        targetV=-9.5, currentV=0.2, targetA=0
+
+TBD: maybe use thrustNormal to add enginse pointing diferrent directions?
 
 TBD: support for starting from orbit?
 

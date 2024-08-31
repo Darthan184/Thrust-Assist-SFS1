@@ -92,6 +92,7 @@
         private static _UpDownValueLog _minThrottle_UDV;
         private static _UpDownValueLog _minVelocity_UDV;
         private static _UpDownValueLog _targetHeight_UDV;
+        private static SFS.UI.ModGUI.Label _targetVelocity_Label;
         public static ThrustAssistMod.Updater updater;
 
         public static bool AssistOn
@@ -127,6 +128,21 @@
         public static double TargetHeight
         { get { return _targetHeight_UDV.Value; } set { _targetHeight_UDV.Value=value ;} }
 
+        public static double TargetVelocity
+        {
+            set
+            {
+                if (double.IsNaN(value))
+                {
+                    _targetVelocity_Label.Text="Target V: ???" ;
+                }
+                else
+                {
+                    _targetVelocity_Label.Text=string.Format("Target V: {0:N1} m/s", value) ;
+                }
+            }
+        }
+
         public static void ShowGUI()
         {
             _isActive = false;
@@ -148,6 +164,10 @@
             _targetHeight_UDV = new _UpDownValueLog(window, "Height: {0:N0} m", 40 , 1, 10000);
             _minVelocity_UDV = new _UpDownValueLog(window, "Land at: {0:N1} m/s", 4, 0.5 , 10, 10);
             _minThrottle_UDV = new _UpDownValueLog(window, "Min Throttle: {0:P0}", 0.8, 0.01 , 1.0, 20);
+
+            _targetVelocity_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
+            _targetVelocity_Label.AutoFontResize = false;
+            _targetVelocity_Label.FontSize = 25;
 
             _isActive = true;
         }
