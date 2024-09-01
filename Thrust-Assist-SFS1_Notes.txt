@@ -30,6 +30,8 @@ DONE: attempt using Info Overload method to get rocket info
 DONE: attempt to get values needed for calc
 
 DONE: perform calculation
+    S = v * t
+
     S^2 = v^2 * t^2
     S = 0.5*a*t^2
 
@@ -80,13 +82,47 @@ DONE: landing V set by adjusting throttle
     DONE: build
     DONE: test
 
->>>: re work calculations, base on target velocity
+DONE: re work calculations, base on target velocity
     DONE: code
     DONE: build
-    >>>: test
-        targetV=-9.5, currentV=0.2, targetA=0
+    DONE: test
 
-TBD: maybe use thrustNormal to add enginse pointing diferrent directions?
+NOTE: from testing I suspect there was an error in the original equations:
+    S = 0.5 * v * t
+
+    S^2 = 0.25 v^2 * t^2
+    S = 0.5*a*t^2
+
+    S = -0.5*v^2/a
+    a = -0.5*v^2/S
+    v=sqrt(-a*S*2)
+
+DONE: try using min thrust in the target velocity calcs
+
+FAIL: try a more accurate 'hight of spacecraft bottom' calc
+    SFS.Parts.Modules.PolygonCollider has BoxCollider2D .collider_Box
+    UnityEngine.Collider2D has UnityEngine.ColliderDistance2D .Distance(Collider2D)
+    UnityEngine.ColliderDistance2D has .distance
+    can't find a Collider2D to compare to
+
+    SFS.Parts.Part_Utility has  bool .GetFramingBounds_WorldSpace(out Rect bounds, Part[] parts)
+    SFS.World.Rocket has Part[] .partHolder.GetArray()
+    can't find a way to use the bounds
+    - test with spacecraft with low COM?
+
+DONE: use 0 as minimum height
+    DONE: code
+    DONE: test
+
+DONE: try using thrust vectors to calculate available thrust
+    - test with spacecraft with angled thrusters?
+
+DONE: more extensive testing
+
+TBD: add support for horizontal velocity
+    - maybe wait until more time available?
+
+TBD: maybe use thrustNormal to add engines pointing diferrent directions?
 
 TBD: support for starting from orbit?
 

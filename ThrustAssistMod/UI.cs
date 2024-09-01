@@ -7,9 +7,19 @@
             string _formatText;
             double _maxLog;
             double _minLog;
+            string _minText="";
             int _steps;
             double _valueLog;
             private SFS.UI.ModGUI.Label _value_Label;
+
+            public string MinText
+            {  get { return  _minText; } set {  _minText=value; } }
+
+            public bool IsMinimum
+            {  get { return  _valueLog==_minLog; }}
+
+            public double MinValue
+            {  get { return System.Math.Log(_minLog); }}
 
             public double Value
             {
@@ -28,13 +38,28 @@
             {
                 _valueLog -= (_maxLog-_minLog)/_steps;
                 if (_valueLog<_minLog) _valueLog=_minLog;
-                _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+
+                if (_valueLog==_minLog && _minText!="")
+                {
+                    _value_Label.Text = _minText;
+                }
+                else
+                {
+                    _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+                }
             }
 
             private void Value_MinButton_Click()
             {
                 _valueLog=_minLog;
-                _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+                if (_minText!="")
+                {
+                    _value_Label.Text = _minText;
+                }
+                else
+                {
+                    _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+                }
             }
 
             private void Value_MaxButton_Click()
@@ -89,8 +114,8 @@
         private static bool _assistOn=false;
         private static SFS.UI.ModGUI.ButtonWithLabel _assistOn_Button;
         private static bool _isActive=false;
-        private static _UpDownValueLog _minThrottle_UDV;
-        private static _UpDownValueLog _minVelocity_UDV;
+        private static _UpDownValueLog _targetThrottle_UDV;
+        private static _UpDownValueLog _landingVelocity_UDV;
         private static _UpDownValueLog _targetHeight_UDV;
         private static SFS.UI.ModGUI.Label _targetVelocity_Label;
         public static ThrustAssistMod.Updater updater;
@@ -119,14 +144,23 @@
         public static bool IsActive
         { get { return _isActive;}}
 
-        public static double MinThrottle
-        { get { return _minThrottle_UDV.Value; } set { _minThrottle_UDV.Value=value ;} }
-
-        public static double MinVelocity
-        { get { return _minVelocity_UDV.Value; } set { _minVelocity_UDV.Value=value ;} }
+        public static double LandingVelocity
+        { get { return _landingVelocity_UDV.Value; } set { _landingVelocity_UDV.Value=value ;} }
 
         public static double TargetHeight
-        { get { return _targetHeight_UDV.Value; } set { _targetHeight_UDV.Value=value ;} }
+        {
+            get
+            {
+                return (_targetHeight_UDV.IsMinimum)?0:_targetHeight_UDV.Value;
+            }
+            set
+            {
+                _targetHeight_UDV.Value=(value<_targetHeight_UDV.MinValue)?_targetHeight_UDV.MinValue:value ;
+            }
+        }
+
+        public static double TargetThrottle
+        { get { return _targetThrottle_UDV.Value; } set { _targetThrottle_UDV.Value=value ;} }
 
         public static double TargetVelocity
         {
@@ -161,9 +195,10 @@
             };
 
             _assistOn_Button = SFS.UI.ModGUI.Builder.CreateButtonWithLabel(window, 290,30, 0,0, "Assist: Off","Toggle",ChangeAssistOn);
-            _targetHeight_UDV = new _UpDownValueLog(window, "Height: {0:N0} m", 40 , 1, 10000);
-            _minVelocity_UDV = new _UpDownValueLog(window, "Land at: {0:N1} m/s", 4, 0.5 , 10, 10);
-            _minThrottle_UDV = new _UpDownValueLog(window, "Min Throttle: {0:P0}", 0.8, 0.01 , 1.0, 20);
+            _targetHeight_UDV = new _UpDownValueLog(window, "Height: {0:N1} m", 32 , 1, 1024);
+            _targetHeight_UDV.MinText = "Height: Surface";
+            _landingVelocity_UDV = new _UpDownValueLog(window, "Land at: {0:N1} m/s", 4, 1.0 , 10);
+            _targetThrottle_UDV = new _UpDownValueLog(window, "Throttle: {0:P0}", 0.8, 0.05 , 1.0, 15);
 
             _targetVelocity_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
             _targetVelocity_Label.AutoFontResize = false;
