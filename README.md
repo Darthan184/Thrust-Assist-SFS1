@@ -2,18 +2,20 @@
 
 Thrust assistance mod for Spaceflight Simulator 1
 
-![Images\UI.png]
+![User Interface](/Images/UI.png)
 
 * << _set minimum value_
 * < _reduce value_
-* > _increase value_
-* >> _set maximum value_
+* \> _increase value_
+* \>\> _set maximum value_
 
-**Height** The target altitude. N.B. this is from approximatly the botton of the rocket, not the CoM.
-**Land at** The target landing speed. I ignore unless the heigh is set to the minimum value.
+**Height** The target altitude. N.B. this is from approximately the bottom of the rocket, not the CoM.
+
+**Land at** The target landing speed. Is ignored unless the height is set to the minimum value.
+
 **Throttle** The target throttle to be used. This is used to estimate the vertical velocity needed.
 
-Taking the oreintaton of the rocket into account this mod will set the thrust to attempt to reach 0 m/s at the specified altitude. If the altitude is set to _surface_ (the mimimum altitude) it will attempt to land at the specified velocity.
+Taking the orientation of the rocket into account this mod will set the thrust to attempt to reach 0 m/s at the specified altitude. If the altitude is set to _surface_ (the mimimum altitude) it will attempt to land at the specified velocity.
 
 ---
 
