@@ -119,6 +119,10 @@ DONE: try using thrust vectors to calculate available thrust
 
 DONE: more extensive testing
 
+>>>: release:
+    https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
+    https://github.com/Darthan184/Thrust-Assist-SFS1/releases
+
 TBD: add support for horizontal velocity
     - maybe wait until more time available?
 

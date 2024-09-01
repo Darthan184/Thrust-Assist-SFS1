@@ -16,7 +16,7 @@
 //~             new System.Collections.Generic.Dictionary<string, SFS.IO.FilePath>()
 //~                 {
 //~                     {
-//~                         "https://github.com/Darthan184/Thrust-Assist-SFS1/releases/latest/download/ThrustAssistMod.dll"
+//~                         "https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll"
 //~                         , new SFS.IO.FolderPath(ModFolder).ExtendToFile("ThrustAssistMod.dll")
 //~                     }
 //~                 };
