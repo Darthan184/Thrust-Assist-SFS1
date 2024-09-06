@@ -118,22 +118,86 @@ DONE: try using thrust vectors to calculate available thrust
     - test with spacecraft with angled thrusters?
 
 DONE: more extensive testing
+DONE: maybe use thrustNormal to add engines pointing diferrent directions?
 
->>>: release:
+DONE: release
     https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
     https://github.com/Darthan184/Thrust-Assist-SFS1/releases
 
-TBD: add support for horizontal velocity
+    This is the initial release of this mod. Only altitude and vertical velocity control to the surface is implemented so far.
+
+   DONE: post
+
+>>>: add support for horizontal velocity
     - maybe wait until more time available?
 
-TBD: maybe use thrustNormal to add engines pointing diferrent directions?
+    >>>: position marker control
+        - need surface position control that specifies angle
+
+        DONE: design & plan
+            "<<<" ">>>" buttons
+                +/- 1/10 circle or
+                +/- Landmark/ landed spacecraft
+            "<<" ">>" buttons 50m?
+            "<" ">" buttons 5m?
+            on/off button
+            angle display
+
+        DONE: 1/10 curcle
+        TBD: landmarks
+
+    FAIL: display marker
+        DONE: design & plan
+            on world scene
+                from InfoOverload\Functions.cs
+                    var launchPadPos = Base.planetLoader.spaceCenter.LaunchPadLocation.position;
+                    var fp32_launchPadPos = WorldView.ToLocalPosition(launchPadPos);
+
+                    List<Vector3> points = new List<Vector3>()
+                    {
+                        new Vector3(fp32_launchPadPos.x - 30f, fp32_launchPadPos.y - 200f), // Lower-left corner
+                        new Vector3(fp32_launchPadPos.x + 30f, fp32_launchPadPos.y - 200f), // Lower-right corner
+                        new Vector3(fp32_launchPadPos.x + 30f, fp32_launchPadPos.y + 200f), // Upper-right corner
+                        new Vector3(fp32_launchPadPos.x - 30f, fp32_launchPadPos.y + 200f) // Upper-left corner
+                    };
+
+                    Color c = function.GetSetting<Color>("Despawn Hitbox Color");
+
+                    GLDrawer.DrawLine(points[0], points[1], c, 0.0025f * WorldView.main.viewDistance);
+                    GLDrawer.DrawLine(points[1], points[2], c, 0.0025f * WorldView.main.viewDistance);
+                    GLDrawer.DrawLine(points[2], points[3], c, 0.0025f * WorldView.main.viewDistance);
+                    GLDrawer.DrawLine(points[3], points[0], c, 0.0025f * WorldView.main.viewDistance);
+                    ----------------------------------------------
+                    Double2 launchPadPos = SFS.Base.planetLoader.spaceCenter.LaunchPadLocation.position;
+                    UnityEngine.Vector2 fp32_launchPadPos = SFS.World.WorldView.ToLocalPosition(launchPadPos);
+
+                    SFS.WorldBase.PlanetLoader SFS.Base.planetLoader
+                    SFS.World.SpaceCenterData SFS.Base.planetLoader.spaceCenter
+                    SFS.World.Location SFS.Base.planetLoader.spaceCenter.LaunchPadLocation
+                        => new Location(this.address.GetPlanet(), this.position_LaunchPad.GetPosition(this.Planet.Radius, this.angle));
+
+                    SFS.World.SpaceCenterData.BuildingPosition this.position_LaunchPad
+                    SFS.World.SpaceCenterData.BuildingPosition.GetPosition
+                        {
+                            return Double2.CosSin(0.01745329238474369 * originAngle - this.horizontalPosition / planetRadius, planetRadius + this.height);
+                        }
+
+                    0.01745329238474369 = radians per degree
+                    Double2 CosSin(double angleRadians, double radius)
+                    - ### canmot get this one to work
+
+            on map scene
+                SFS.World.Maps.Map.dashedLine.DrawLine(Vector3[] points, Planet planet, Color startColor, Color endColor)
+                    points are SFS.World.Location.position values in km (*0.001)
+                    - ### canmot get this one to work either!
+
+        FAIL: code & test
+            -
+
+    TBD: use marker for horizontal target
 
 TBD: support for starting from orbit?
 
-TBD: create documentaion
-TBD: create release
 TBD: when release path is known can uncomment auto update data
     - current expected path https://github.com/Darthan184/Thrust-Assist-SFS1/releases/latest/download/ThrustAssistMod.dll
-TBD: make public
-TBD: post
 

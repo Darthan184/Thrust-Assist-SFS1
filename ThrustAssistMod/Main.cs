@@ -7,7 +7,7 @@
         public override string DisplayName => "Thrust Assist";
         public override string Author => "Darthan";
         public override string MinimumGameVersionNecessary => "1.5.10.2";
-        public override string ModVersion => "v0.5";
+        public override string ModVersion => "v0.6";
         public override string Description => "Thrust Assistance Mod";
         public override System.Collections.Generic.Dictionary<string, string> Dependencies { get; } =
             new System.Collections.Generic.Dictionary<string, string> { { "UITools", "1.1.5" } };
@@ -24,6 +24,8 @@
 
         public static ModLoader.Mod mod;
         public static SFS.IO.FolderPath modFolder;
+        public static ThrustAssistMod.Updater updater;
+
 
         // This initializes the patcher. This is required if you use any Harmony patches.
         static HarmonyLib.Harmony patcher;
@@ -42,7 +44,7 @@
         public override void Load()
         {
             ThrustAssistMod.SettingsManager.Load();
-            UnityEngine.GameObject.DontDestroyOnLoad((ThrustAssistMod.UI.updater = new UnityEngine.GameObject("Thrust Assist-Updater").AddComponent<ThrustAssistMod.Updater>()).gameObject);
+            UnityEngine.GameObject.DontDestroyOnLoad((updater = new UnityEngine.GameObject("Thrust Assist-Updater").AddComponent<ThrustAssistMod.Updater>()).gameObject);
             ModLoader.Helpers.SceneHelper.OnWorldSceneLoaded += ThrustAssistMod.UI.ShowGUI;
             ModLoader.Helpers.SceneHelper.OnWorldSceneUnloaded += ThrustAssistMod.UI.GUIInActive;
         }
