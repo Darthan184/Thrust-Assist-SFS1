@@ -1,4 +1,6 @@
-﻿namespace ThrustAssistMod
+﻿using System.Linq; // contains extensions
+
+namespace ThrustAssistMod
 {
     public class UI
     {
@@ -109,6 +111,9 @@
         #endregion
 
         #region "Private fields"
+            private const double radiansPerDegree=0.01745329238474369;
+            private const double degreesPerRadian=57.2957799569164486;
+
             // Create a GameObject for your window to attach to.
             private static UnityEngine.GameObject windowHolder;
 
@@ -118,45 +123,162 @@
             private static bool _assistOn=false;
             private static SFS.UI.ModGUI.ButtonWithLabel _assistOn_Button;
             private static bool _isActive=false;
-            private static double _marker=0;
+            private static double _marker=90;
             private static SFS.UI.ModGUI.Button _markerOnOff_Button;
             private static bool _markerOn=false;
             private static _UpDownValueLog _targetThrottle_UDV;
             private static _UpDownValueLog _landingVelocity_UDV;
             private static _UpDownValueLog _targetHeight_UDV;
-//~             private static SFS.UI.ModGUI.Label _debug_Label;
-            private static SFS.UI.ModGUI.Label _targetVelocity_Label;
+            private static SFS.UI.ModGUI.Label _debug_Label;
+//~             private static SFS.UI.ModGUI.Label _targetVelocity_Label;
         #endregion
 
         #region "Private methods"
+            private static  System.Collections.Generic.SortedSet<double> GetMarkerTargets()
+            {
+                System.Collections.Generic.SortedSet<double> angles = new System.Collections.Generic.SortedSet<double>();
+                SFS.WorldBase.Planet planet=SFS.World.PlayerController.main.player.Value.location.Value.planet;
+
+                foreach(SFS.World.Maps.Landmark oneLandmark in planet.landmarks)
+                {
+                    angles.Add(ThrustAssistMod.Utility.NormaliseAngle(oneLandmark.data.angle)); // degrees? radians?, assume degrees
+                }
+
+                foreach(SFS.World.Rocket oneRocket in SFS.World.GameManager.main.rockets)
+                {
+                    if (oneRocket.location.planet==planet && oneRocket.location.velocity.Value.magnitude<0.01)
+                    {
+                        angles.Add(ThrustAssistMod.Utility.NormaliseAngle(oneRocket.location.position.Value.AngleRadians*degreesPerRadian));
+                    }
+                }
+
+                if (SFS.Base.planetLoader.spaceCenter.address == planet.DisplayName)
+                {
+                     Double2 launchPadPos = SFS.Base.planetLoader.spaceCenter.LaunchPadLocation.position;
+                    angles.Add(launchPadPos.AngleRadians*degreesPerRadian);
+                }
+
+                if (angles.Count>0)
+                {
+                    double lastAngle = angles.Max-360;
+                    System.Collections.Generic.List<double> newAngles = new System.Collections.Generic.List<double>();
+
+                    foreach(double oneAngle in angles)
+                    {
+                        int interpolateCount = (int)System.Math.Floor((oneAngle-lastAngle)/36.0);
+
+                        if (interpolateCount>1)
+                            for (int i=1;i<interpolateCount;i++)
+                            {
+                                newAngles.Add
+                                    (
+                                        ThrustAssistMod.Utility.NormaliseAngle
+                                            (
+                                                lastAngle + (oneAngle-lastAngle)*(double)i/(double)interpolateCount
+                                            )
+                                    );
+                            }
+
+                        lastAngle = oneAngle;
+                    }
+                    angles.UnionWith(newAngles);
+                }
+
+                System.Text.StringBuilder debugText = new System.Text.StringBuilder();
+
+                foreach(double oneAngle in angles)
+                {
+                    if (debugText.Length>0) debugText.Append(", ");
+                    debugText.AppendFormat("{0:f1}",oneAngle);
+                }
+
+                DebugItem=debugText.ToString();
+
+                return angles;
+            }
+
             private static void Marker_BackLandmark_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - 36);
+                System.Collections.Generic.SortedSet<double> angles = GetMarkerTargets();
+
+                if (angles.Count==0)
+                {
+                    Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + 36);
+                }
+                else
+                {
+                    double? result=null;
+
+                    foreach (double oneAngle in angles)
+                    {
+                        if (oneAngle>Marker)
+                        {
+                            result=oneAngle;
+                            break;
+                        }
+                    }
+
+                    if (result == null)
+                    {
+                        Marker=angles.Min;
+                    }
+                    else
+                    {
+                        Marker=result.Value;
+                    }
+                }
             }
 
             private static void Marker_BackLarge_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(50));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(50));
             }
 
             private static void Marker_BackSmall_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(5));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(5));
             }
 
             private static void Marker_ForwardLandmark_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + 36);
-            }
+                System.Collections.Generic.SortedSet<double> angles = GetMarkerTargets();
+
+                if (angles.Count==0)
+                {
+                    Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - 36);
+                }
+                else
+                {
+                    double? result=null;
+
+                    foreach (double oneAngle in angles.Reverse())
+                    {
+                        if (oneAngle<Marker)
+                        {
+                            result=oneAngle;
+                            break;
+                        }
+                    }
+
+                    if (result == null)
+                    {
+                        Marker=angles.Max;
+                    }
+                    else
+                    {
+                        Marker=result.Value;
+                    }
+                }
+           }
 
             private static void Marker_ForwardLarge_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(50));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(50));
             }
 
             private static void Marker_ForwardSmall_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(5));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(5));
             }
 
             private static void Marker_OnOff_Click()
@@ -201,18 +323,18 @@
                     else
                     {
                         _assistOn_Button.label.Text="Assist: Off";
-                        _targetVelocity_Label.Text="";
+//~                         _targetVelocity_Label.Text="";
                     }
                 }
             }
 
-//~             public static string DebugItem
-//~             {
-//~                 set
-//~                 {
-//~                     _debug_Label.Text = value;
-//~                 }
-//~             }
+            public static string DebugItem
+            {
+                set
+                {
+                    _debug_Label.Text = value;
+                }
+            }
             public static double Marker
             {
                 get
@@ -266,11 +388,11 @@
                 {
                     if (double.IsNaN(value))
                     {
-                        _targetVelocity_Label.Text="Target V: ???" ;
+//~                         _targetVelocity_Label.Text="Target V: ???" ;
                     }
                     else
                     {
-                        _targetVelocity_Label.Text=string.Format("Target V: {0:N1} m/s", value) ;
+//~                         _targetVelocity_Label.Text=string.Format("Target V: {0:N1} m/s", value) ;
                     }
                 }
             }
@@ -315,13 +437,13 @@
                     SFS.UI.ModGUI.Builder.CreateButton(marker_Container,40,30,0,0,Marker_ForwardLandmark_Click,">>>");
                 }
 
-//~                 _debug_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
-//~                 _debug_Label.AutoFontResize = false;
-//~                 _debug_Label.FontSize = 15;
+                _debug_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
+                _debug_Label.AutoFontResize = false;
+                _debug_Label.FontSize = 15;
 
-                _targetVelocity_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
-                _targetVelocity_Label.AutoFontResize = false;
-                _targetVelocity_Label.FontSize = 25;
+//~                 _targetVelocity_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
+//~                 _targetVelocity_Label.AutoFontResize = false;
+//~                 _targetVelocity_Label.FontSize = 25;
 
                 _isActive = true;
             }

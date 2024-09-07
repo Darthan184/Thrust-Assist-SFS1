@@ -7,7 +7,6 @@ namespace ThrustAssistMod
         private static double NormaliseAngle(double input) => ((input + 540) % 360) - 180;
         private static double lastTime=0;
         private const double timeStep=0.2;
-        private const double radiansPerDegree=0.01745329238474369;
 
         internal static void SwitchOff()
         {
@@ -41,29 +40,6 @@ namespace ThrustAssistMod
                     double thisTime=SFS.World.WorldTime.main.worldTime;
                     if (lastTime==0 || lastTime>thisTime) lastTime=thisTime;
 
-//~                     if ( ThrustAssistMod.UI.MarkerOn)
-//~                     {
-//~                         SFS.WorldBase.Planet planet=SFS.World.PlayerController.main.player.Value.location.Value.planet;
-//~                         double radius=planet.Radius;
-
-//~                         Double2 fromPoint = 0.001*Double2.CosSin(radiansPerDegree * ThrustAssistMod.UI.Marker, radius*0.9);
-//~                         Double2 toPoint = 0.001*Double2.CosSin(radiansPerDegree * ThrustAssistMod.UI.Marker, radius*1.1);
-
-//~                         ThrustAssistMod.UI.DebugItem=string.Format("f:{0} t:{1}",fromPoint,toPoint);
-
-//~                         UnityEngine.Vector3[] points = new UnityEngine.Vector3[]
-//~                             {
-//~                                 new UnityEngine.Vector3((float)fromPoint.x,(float)fromPoint.y)
-//~                                 ,new UnityEngine.Vector3((float)toPoint.x,(float)toPoint.y)
-//~                             };
-//~                         SFS.World.Maps.Map.dashedLine.DrawLine
-//~                             (
-//~                                 points
-//~                                 ,planet
-//~                                 ,UnityEngine.Color.red
-//~                                 ,UnityEngine.Color.green
-//~                             );
-//~                     }
                     if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket)
                     {
                         if ( ThrustAssistMod.UI.AssistOn)

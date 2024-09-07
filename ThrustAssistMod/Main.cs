@@ -16,13 +16,13 @@
 //~             new System.Collections.Generic.Dictionary<string, SFS.IO.FilePath>()
 //~                 {
 //~                     {
-//~                         "https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll"
+//~                         "https://github.com/Darthan184/Thrust-Assist-SFS1/releases/latest/ThrustAssistMod.dll"
 //~                         , new SFS.IO.FolderPath(ModFolder).ExtendToFile("ThrustAssistMod.dll")
 //~                     }
 //~                 };
 
 
-        public static ModLoader.Mod mod;
+        public static ModLoader.Mod main;
         public static SFS.IO.FolderPath modFolder;
         public static ThrustAssistMod.Updater updater;
 
@@ -34,9 +34,9 @@
         // This method runs before anything from the game is loaded. This is where you should apply your patches, as shown below.
         public override void Early_Load()
         {
-            mod = this;
+            main = this;
             modFolder = new SFS.IO.FolderPath(ModFolder);
-            patcher = new HarmonyLib.Harmony("thrustassistmod");
+            patcher = new HarmonyLib.Harmony(ModNameID);
             patcher.PatchAll();
         }
 

@@ -143,8 +143,8 @@ DONE: release
             on/off button
             angle display
 
-        DONE: 1/10 curcle
-        TBD: landmarks
+        DONE: 1/10 circle
+        TBD: landmarks/landed spacecrafr
 
     FAIL: display marker
         DONE: design & plan
@@ -192,9 +192,47 @@ DONE: release
                     - ### canmot get this one to work either!
 
         FAIL: code & test
-            -
+
+    DONE: investigate how aerotrajectory writes to the map scene
+        uses a complex-looking harmony patch (AeroTrajectory\Patches.cs) to patch
+            SFS.World.Maps.MapManager.DrawMap()
+            seems to insert new (call?)code after a DrawTrajectories() call
+
+        starts at SFS.World.Location player.location.Value.position.ToVector2/1000.0
+            seems to have planet as origin
+            uses  SFS.World.Maps.Map.dashedLine.DrawLine
+
+    DONE: display marker (2)
+        DONE:Code
+            DONE: Updater.cs
+                - move map display code to Displayer.cs
+
+            DONE: Displayer.cs
+                ThrustAssistMod.Displayer.MapDrawMarker
+
+            DONE: Patcher
+
+        DONE: build
+        DONE: test
+            - AeroTrajectory OK
+            - displays  on map
+            - start at 90, reverse direction
+
+    DONE: position marker control (2)
+        - landmarks/landed spacecraft
+            SFS.WorldBase.Planet.Landmark[].data.angle
+            List<Rocket> SFS.World.GameManager.main.rockets
+
+            rocket.location.planet   identifies planet
+            rocket.location.velocity.magnitude = 0 indicates landed?
+        DONE:Code
+        DONE: build
+        DONE: test
+            - to position too low for captued asteroid
 
     TBD: use marker for horizontal target
+
+    TBD: display direction somewhere
 
 TBD: support for starting from orbit?
 
