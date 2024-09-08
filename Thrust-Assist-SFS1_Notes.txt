@@ -131,7 +131,7 @@ DONE: release
 >>>: add support for horizontal velocity
     - maybe wait until more time available?
 
-    >>>: position marker control
+    DONE: position marker control
         - need surface position control that specifies angle
 
         DONE: design & plan
@@ -144,7 +144,6 @@ DONE: release
             angle display
 
         DONE: 1/10 circle
-        TBD: landmarks/landed spacecrafr
 
     FAIL: display marker
         DONE: design & plan
@@ -228,11 +227,14 @@ DONE: release
         DONE:Code
         DONE: build
         DONE: test
-            - to position too low for captued asteroid
 
-    TBD: use marker for horizontal target
+    DONE: calcs for horizontal velocity (1)
+        DONE: code
 
-    TBD: display direction somewhere
+    TBD: vector display
+
+    TBD: calcs for horizontal velocity (2)
+        TBD: test
 
 TBD: support for starting from orbit?
 

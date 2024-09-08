@@ -111,9 +111,6 @@ namespace ThrustAssistMod
         #endregion
 
         #region "Private fields"
-            private const double radiansPerDegree=0.01745329238474369;
-            private const double degreesPerRadian=57.2957799569164486;
-
             // Create a GameObject for your window to attach to.
             private static UnityEngine.GameObject windowHolder;
 
@@ -148,14 +145,14 @@ namespace ThrustAssistMod
                 {
                     if (oneRocket.location.planet==planet && oneRocket.location.velocity.Value.magnitude<0.01)
                     {
-                        angles.Add(ThrustAssistMod.Utility.NormaliseAngle(oneRocket.location.position.Value.AngleRadians*degreesPerRadian));
+                        angles.Add(ThrustAssistMod.Utility.NormaliseAngle(oneRocket.location.position.Value.AngleDegrees));
                     }
                 }
 
                 if (SFS.Base.planetLoader.spaceCenter.address == planet.DisplayName)
                 {
-                     Double2 launchPadPos = SFS.Base.planetLoader.spaceCenter.LaunchPadLocation.position;
-                    angles.Add(launchPadPos.AngleRadians*degreesPerRadian);
+                    Double2 launchPadPos = SFS.Base.planetLoader.spaceCenter.LaunchPadLocation.position;
+                    angles.Add(launchPadPos.AngleDegrees);
                 }
 
                 if (angles.Count>0)

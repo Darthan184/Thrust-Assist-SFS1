@@ -2,8 +2,6 @@
 {
     public class Displayer
     {
-        private const double radiansPerDegree=0.01745329238474369;
-
         public static void MapDrawMarker()
         {
             string tracePoint = "S-01";
@@ -17,7 +15,7 @@
                         SFS.WorldBase.Planet planet=SFS.World.PlayerController.main.player.Value.location.Value.planet;
                         double radius=planet.Radius;
 ;
-                        Double2 toPoint = 0.001*Double2.CosSin(radiansPerDegree * ThrustAssistMod.UI.Marker, radius*2);
+                        Double2 toPoint = 0.001*Double2.CosSin(ThrustAssistMod.Utility.radiansPerDegree * ThrustAssistMod.UI.Marker, radius*2);
 
                         UnityEngine.Vector3[] points = new UnityEngine.Vector3[]
                             { UnityEngine.Vector3.zero ,toPoint.ToVector3};

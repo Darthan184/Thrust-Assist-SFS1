@@ -2,6 +2,9 @@
 {
     public class Utility
     {
+        public const double radiansPerDegree=0.01745329238474369;
+        public const double degreesPerRadian=57.2957799569164486;
+
         public static double MetersToDegrees(double distance)
         {
             double radius = SFS.World.PlayerController.main.player.Value.location.Value.planet.Radius;
