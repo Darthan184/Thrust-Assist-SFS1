@@ -231,10 +231,33 @@ DONE: release
     DONE: calcs for horizontal velocity (1)
         DONE: code
 
-    TBD: vector display
+    >>>: vector display
+        investigate ANAIS
+        C:\Dloads\SpaceFlightSim\ANAIS-main\SFS_Patches\VelocityArrowDrawer_Patch.cs
+        patches:
+            [HarmonyPatch(typeof(VelocityArrowDrawer), "OnLocationChange")]
+            class
+                [HarmonyPrefix]
+                public static bool OnLocationChange_Prefix(Location _, Location location)
+
+            [HarmonyPatch(typeof(VelocityArrowDrawer), "Start")]
+            class
+                [HarmonyPostfix]
+                public static void Start_postfix()
+
+            don't think I can do this without copying chunks of (unlicenced) code
 
     TBD: calcs for horizontal velocity (2)
         TBD: test
+
+NOTE: bugs?
+    -  will work without capsule or probe.
+        test is: PlayerController.main.HasControl(MsgDrawer.main)
+            or Rocket.hasControl
+
+NOTE: new features?
+    - if switch between rockets, uncontrolled one keeps engine on but does not control it
+        - store data per rocket (indexed by rocket object (weak) reference)?
 
 TBD: support for starting from orbit?
 
