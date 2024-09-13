@@ -119,21 +119,41 @@ DONE: try using thrust vectors to calculate available thrust
 
 DONE: more extensive testing
 
->>>: release:
+DONE: release:
     https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
     https://github.com/Darthan184/Thrust-Assist-SFS1/releases
+
+    DONE: create documentaion
+    DONE: create release
+    DONE: make public
+    DONE: post
 
 TBD: add support for horizontal velocity
     - maybe wait until more time available?
 
-TBD: maybe use thrustNormal to add engines pointing diferrent directions?
+>>>: bug fixes
+    >>>:  will work without capsule or probe.
+        DONE: investigate
+            test is: SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main)
+                or Rocket.hasControl
+
+        DONE: code
+        >>>: test
+
+    >>>: if left on, switch to biuld screen and launch, new rocket unexpectely launches
+        DONE: investigate
+            set _assistOn to fales woth GUIInactive() called
+        DONE: code
+        TBD: test
+            OK after swith to build screen
+            stays on if revert to launch
+
+NOTE: new features?
+    - if switch between rockets, uncontrolled one keeps engine on but does not control it
+        - store data per rocket (indexed by rocket object (weak) reference)?
+        - would need SAS to work this way also
 
 TBD: support for starting from orbit?
 
-TBD: create documentaion
-TBD: create release
 TBD: when release path is known can uncomment auto update data
     - current expected path https://github.com/Darthan184/Thrust-Assist-SFS1/releases/latest/download/ThrustAssistMod.dll
-TBD: make public
-TBD: post
-
