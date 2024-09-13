@@ -42,7 +42,11 @@ namespace ThrustAssistMod
 
                     if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket && ThrustAssistMod.UI.AssistOn)
                     {
-                        if (thisTime>lastTime+timeStep)
+                        if (!SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main))
+                        {
+                            ThrustAssistMod.UI.AssistOn=false;
+                        }
+                        else if (thisTime>lastTime+timeStep)
                         {
                             lastTime=thisTime;
 

@@ -210,6 +210,7 @@
         public static void GUIInActive()
         {
             _isActive = false;
+            _assistOn=false;
         }
 
         public static void ChangeAssistOn()
