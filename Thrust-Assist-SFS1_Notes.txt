@@ -132,21 +132,37 @@ TBD: add support for horizontal velocity
     - maybe wait until more time available?
 
 >>>: bug fixes
-    >>>:  will work without capsule or probe.
+    DONE:  will work without capsule or probe.
         DONE: investigate
             test is: SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main)
                 or Rocket.hasControl
 
         DONE: code
-        >>>: test
+        DONE: test
 
-    >>>: if left on, switch to biuld screen and launch, new rocket unexpectely launches
+    DONE: if left on, switch to build screen and launch, new rocket unexpectely launches
         DONE: investigate
-            set _assistOn to fales woth GUIInactive() called
+            set _assistOn to false when GUIInactive() called (is on scene change)
         DONE: code
-        TBD: test
-            OK after swith to build screen
-            stays on if revert to launch
+        DONE: test
+            OK after switch to build screen
+            stays on if revert to launch - fixed
+            stays on if quicksave loaded - to be tested
+
+    >>>: release:
+        https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
+        https://github.com/Darthan184/Thrust-Assist-SFS1/releases
+
+        DONE: create documentaion
+        >>>: create release
+        TBD: post
+            amend first post
+                - link and some text changes
+            add reply
+
+0.5.1 Bug fixes.
+Uncontrollable rockets will no longer be affected
+Will no longer remain on after returning to the build screen, revert to launch or load quick save.
 
 NOTE: new features?
     - if switch between rockets, uncontrolled one keeps engine on but does not control it
