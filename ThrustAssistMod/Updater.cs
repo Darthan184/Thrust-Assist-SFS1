@@ -42,11 +42,13 @@ namespace ThrustAssistMod
 
                     if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket)
                     {
-                        if ( ThrustAssistMod.UI.AssistOn)
+                        if (!SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main))
                         {
-                            if (thisTime>lastTime+timeStep)
-                            {
-                                lastTime=thisTime;
+                            ThrustAssistMod.UI.AssistOn=false;
+                        }
+                        else if (thisTime>lastTime+timeStep)
+                        {
+                            lastTime=thisTime;
 
                                 UnityEngine.Vector2 thrustVector = UnityEngine.Vector2.zero;
 
