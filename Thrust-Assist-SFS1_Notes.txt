@@ -124,9 +124,10 @@ DONE: release
     https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
     https://github.com/Darthan184/Thrust-Assist-SFS1/releases
 
-    This is the initial release of this mod. Only altitude and vertical velocity control to the surface is implemented so far.
-
-   DONE: post
+    DONE: create documentaion
+    DONE: create release
+    DONE: make public
+    DONE: post
 
 >>>: add support for horizontal velocity (branch: horz_vel_support)
     DONE: position marker control
@@ -248,17 +249,66 @@ DONE: release
     TBD: calcs for horizontal velocity (2)
         TBD: test
 
-NOTE: bugs?
-    -  will work without capsule or probe.
-        test is: PlayerController.main.HasControl(MsgDrawer.main)
-            or Rocket.hasControl
+DONE: bug fixes 0.5.1
+    DONE:  will work without capsule or probe.
+        DONE: investigate
+            test is: SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main)
+                or Rocket.hasControl
+
+        DONE: code
+        DONE: test
+
+    DONE: if left on, switch to build screen and launch, new rocket unexpectely launches
+        DONE: investigate
+            set _assistOn to false when GUIInactive() called (is on scene change)
+        DONE: code
+        DONE: test
+            OK after switch to build screen
+            stays on if revert to launch - fixed
+            stays on if quicksave loaded - to be tested
+
+    DONE: release:
+    https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
+        https://github.com/Darthan184/Thrust-Assist-SFS1/releases
+
+        DONE: create documentaion
+        DONE: create release
+        DONE: post
+            amend first post
+                - link and some text changes
+            add reply
+
+                0.5.1 Bug fixes.
+                Uncontrollable rockets will no longer be affected
+                Will no longer remain on after returning to the build screen, revert to launch or load quick save.
+
+DONE: bug fixes 0.5.2
+    - first launch after program start displays no rocket
+    UI.set_AssistOn null reference exception
+    DONE: develop
+        DONE: code
+        DONE: test
+
+    DONE: release:
+        DONE: release build
+        DONE: commit
+        DONE: create release in git hub
+        DONE: post
+            amend first post
+               - link
+                https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5.2/ThrustAssistMod.dll
+
+            add reply
+                0.5.2 Bug fix.
+                fix: first launch after program start displays no rocket
+                (regression caused by 0.5.1)
 
 NOTE: new features?
     - if switch between rockets, uncontrolled one keeps engine on but does not control it
         - store data per rocket (indexed by rocket object (weak) reference)?
+        - would need SAS to work this way also
 
 TBD: support for starting from orbit?
 
 TBD: when release path is known can uncomment auto update data
     - current expected path https://github.com/Darthan184/Thrust-Assist-SFS1/releases/latest/download/ThrustAssistMod.dll
-
