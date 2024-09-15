@@ -164,26 +164,26 @@ DONE: bug fixes 0.5.1
                 Uncontrollable rockets will no longer be affected
                 Will no longer remain on after returning to the build screen, revert to launch or load quick save.
 
->>>: bug fixes 0.5.2
+DONE: bug fixes 0.5.2
     - first launch after program start displays no rocket
     UI.set_AssistOn null reference exception
     DONE: develop
         DONE: code
         DONE: test
 
-    >>>: release:
+    DONE: release:
         DONE: release build
-        TBD: commit
-        TBD: create release in git hub
-        TBD: post
+        DONE: commit
+        DONE: create release in git hub
+        DONE: post
             amend first post
                - link
                 https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5.2/ThrustAssistMod.dll
 
             add reply
-                0.5.2 Bug fixes.
-                    fix: first launch after program start displays no rocket
-
+                0.5.2 Bug fix.
+                fix: first launch after program start displays no rocket
+                (regression caused by 0.5.1)
 
 NOTE: new features?
     - if switch between rockets, uncontrolled one keeps engine on but does not control it
