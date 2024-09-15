@@ -130,13 +130,16 @@
             {
                 _assistOn=value;
 
-                if (_assistOn)
+                if (_assistOn_Button!=null)
                 {
-                    _assistOn_Button.label.Text="Assist: Surface";
-                }
-                else
-                {
-                    _assistOn_Button.label.Text="Assist: Off";
+                    if (_assistOn)
+                    {
+                        _assistOn_Button.label.Text="Assist: Surface";
+                    }
+                    else
+                    {
+                        _assistOn_Button.label.Text="Assist: Off";
+                    }
                 }
             }
         }
@@ -145,34 +148,85 @@
         { get { return _isActive;}}
 
         public static double LandingVelocity
-        { get { return _landingVelocity_UDV.Value; } set { _landingVelocity_UDV.Value=value ;} }
+        {
+            get
+            {
+                if (_landingVelocity_UDV==null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return _landingVelocity_UDV.Value;
+                }
+            }
+            set
+            {
+                if (_targetHeight_UDV!=null)
+                {
+                    _landingVelocity_UDV.Value=value ;
+                }
+            }
+        }
 
         public static double TargetHeight
         {
             get
             {
-                return (_targetHeight_UDV.IsMinimum)?0:_targetHeight_UDV.Value;
+                if (_targetHeight_UDV==null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return (_targetHeight_UDV.IsMinimum)?0:_targetHeight_UDV.Value;
+                }
             }
             set
             {
-                _targetHeight_UDV.Value=(value<_targetHeight_UDV.MinValue)?_targetHeight_UDV.MinValue:value ;
+                if (_targetHeight_UDV!=null)
+                {
+                    _targetHeight_UDV.Value=(value<_targetHeight_UDV.MinValue)?_targetHeight_UDV.MinValue:value ;
+                }
             }
         }
 
         public static double TargetThrottle
-        { get { return _targetThrottle_UDV.Value; } set { _targetThrottle_UDV.Value=value ;} }
+        {
+            get
+            {
+                if (_targetThrottle_UDV==null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return _targetThrottle_UDV.Value;
+                }
+            }
+            set
+            {
+                if (_targetThrottle_UDV!=null)
+                {
+                    _targetThrottle_UDV.Value=value ;
+                }
+            }
+        }
 
         public static double TargetVelocity
         {
             set
             {
-                if (double.IsNaN(value))
+                if (_targetVelocity_Label!=null)
                 {
-                    _targetVelocity_Label.Text="Target V: ???" ;
-                }
-                else
-                {
-                    _targetVelocity_Label.Text=string.Format("Target V: {0:N1} m/s", value) ;
+                    if (double.IsNaN(value))
+                    {
+                        _targetVelocity_Label.Text="Target V: ???" ;
+                    }
+                    else
+                    {
+                        _targetVelocity_Label.Text=string.Format("Target V: {0:N1} m/s", value) ;
+                    }
                 }
             }
         }

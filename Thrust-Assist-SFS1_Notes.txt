@@ -131,7 +131,7 @@ DONE: release:
 TBD: add support for horizontal velocity
     - maybe wait until more time available?
 
->>>: bug fixes
+DONE: bug fixes 0.5.1
     DONE:  will work without capsule or probe.
         DONE: investigate
             test is: SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main)
@@ -149,20 +149,41 @@ TBD: add support for horizontal velocity
             stays on if revert to launch - fixed
             stays on if quicksave loaded - to be tested
 
-    >>>: release:
-        https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
+    DONE: release:
+    https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5/ThrustAssistMod.dll
         https://github.com/Darthan184/Thrust-Assist-SFS1/releases
 
         DONE: create documentaion
-        >>>: create release
-        TBD: post
+        DONE: create release
+        DONE: post
             amend first post
                 - link and some text changes
             add reply
 
-0.5.1 Bug fixes.
-Uncontrollable rockets will no longer be affected
-Will no longer remain on after returning to the build screen, revert to launch or load quick save.
+                0.5.1 Bug fixes.
+                Uncontrollable rockets will no longer be affected
+                Will no longer remain on after returning to the build screen, revert to launch or load quick save.
+
+>>>: bug fixes 0.5.2
+    - first launch after program start displays no rocket
+    UI.set_AssistOn null reference exception
+    DONE: develop
+        DONE: code
+        DONE: test
+
+    >>>: release:
+        DONE: release build
+        TBD: commit
+        TBD: create release in git hub
+        TBD: post
+            amend first post
+               - link
+                https://github.com/Darthan184/Thrust-Assist-SFS1/releases/download/0.5.2/ThrustAssistMod.dll
+
+            add reply
+                0.5.2 Bug fixes.
+                    fix: first launch after program start displays no rocket
+
 
 NOTE: new features?
     - if switch between rockets, uncontrolled one keeps engine on but does not control it
