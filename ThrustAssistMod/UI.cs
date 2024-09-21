@@ -181,15 +181,15 @@ namespace ThrustAssistMod
                     angles.UnionWith(newAngles);
                 }
 
-                System.Text.StringBuilder debugText = new System.Text.StringBuilder();
+//~                 System.Text.StringBuilder debugText = new System.Text.StringBuilder();
 
-                foreach(double oneAngle in angles)
-                {
-                    if (debugText.Length>0) debugText.Append(", ");
-                    debugText.AppendFormat("{0:f1}",oneAngle);
-                }
+//~                 foreach(double oneAngle in angles)
+//~                 {
+//~                     if (debugText.Length>0) debugText.Append(", ");
+//~                     debugText.AppendFormat("{0:f1}",oneAngle);
+//~                 }
 
-                DebugItem=debugText.ToString();
+//~                 DebugItem=debugText.ToString();
 
                 return angles;
             }

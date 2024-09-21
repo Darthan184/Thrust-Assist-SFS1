@@ -46,7 +46,7 @@ namespace ThrustAssistMod
                         {
                             ThrustAssistMod.UI.AssistOn=false;
                         }
-                        else if (thisTime>lastTime+timeStep)
+                        else if (thisTime>lastTime+timeStep && ThrustAssistMod.UI.AssistOn)
                         {
                             lastTime=thisTime;
 

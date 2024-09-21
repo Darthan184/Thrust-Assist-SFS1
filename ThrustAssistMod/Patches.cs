@@ -29,4 +29,13 @@ namespace ThrustAssistMod
             ThrustAssistMod.Displayer.MapDrawMarker();
         }
     }
+
+    [HarmonyLib.HarmonyPatch(typeof(SFS.World.VelocityArrowDrawer), "OnLocationChange")]
+    class VelocityArrowDrawer_OnLocationChange
+    {
+        static bool Prefix(SFS.World.Location _, SFS.World.Location location)
+        {
+            return ThrustAssistMod.Displayer.VelocityArrowDraw(location);
+        }
+    }
 }

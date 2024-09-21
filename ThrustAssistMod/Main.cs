@@ -25,6 +25,7 @@
         public static ModLoader.Mod main;
         public static SFS.IO.FolderPath modFolder;
         public static ThrustAssistMod.Updater updater;
+        public static ThrustAssistMod.Displayer displayer;
 
 
         // This initializes the patcher. This is required if you use any Harmony patches.
