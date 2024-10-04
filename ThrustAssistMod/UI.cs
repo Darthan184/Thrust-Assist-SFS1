@@ -117,21 +117,78 @@ namespace ThrustAssistMod
             // Random window ID to avoid conflicts with other mods.
             private static readonly int MainWindowID = SFS.UI.ModGUI.Builder.GetRandomID();
 
-            private static bool _assistOn=false;
-            private static SFS.UI.ModGUI.ButtonWithLabel _assistOn_Button;
+            private static bool _assistSurface=false;
+            private static bool _assistMark=false;
+            private static SFS.UI.ModGUI.Button _assistMark_Button;
+            private static SFS.UI.ModGUI.Button _assistOff_Button;
+            private static SFS.UI.ModGUI.Label _assistSelect_Label;
+            private static SFS.UI.ModGUI.Button _assistSurface_Button;
             private static bool _isActive=false;
+            private static _UpDownValueLog _landingVelocity_UDV;
             private static double _marker=90;
             private static SFS.UI.ModGUI.Button _markerOnOff_Button;
             private static bool _markerOn=false;
-            private static _UpDownValueLog _targetThrottle_UDV;
-            private static _UpDownValueLog _landingVelocity_UDV;
+            private static SFS.UI.ModGUI.Label _note_Label;
             private static _UpDownValueLog _targetHeight_UDV;
-            private static SFS.UI.ModGUI.Label _debug_Label;
-            private static SFS.UI.ModGUI.Label _targetVelocity_Label=null;
+            private static _UpDownValueLog _targetThrottle_UDV;
         #endregion
 
         #region "Private methods"
-            private static  System.Collections.Generic.SortedSet<double> GetMarkerTargets()
+            private static void AssistChanged()
+            {
+                if (_isActive && _assistMark_Button!=null && _assistSurface_Button!=null && _assistOff_Button!=null && _assistSelect_Label!=null)
+                {
+                    _assistMark_Button.Active=_markerOn;
+                    _assistMark_Button.Text=_assistMark?"Mark":"mark";
+                    _assistSurface_Button.Text=_assistSurface?"Surf.":"surf";
+
+                    if (!_assistSurface && !_assistMark)
+                    {
+                        _assistOff_Button.Text="Off";
+                        ThrustAssistMod.Updater.SwitchOff();
+                    }
+                    else
+                    {
+                        _assistOff_Button.Text="off";
+                    }
+
+                    if (_assistSurface && _assistMark)
+                    {
+                        _assistSelect_Label.Text="Assist: Both";
+                    }
+                    else if (_assistSurface)
+                    {
+                        _assistSelect_Label.Text="Assist: Surface";
+                    }
+                    else if (_assistMark)
+                    {
+                        _assistSelect_Label.Text="Assist: Mark";
+                    }
+                    else
+                    {
+                        _assistSelect_Label.Text="Assist: Off";
+                    }
+                }
+            }
+
+            public static void AssistMark_Button_Click()
+            {
+                AssistMark=!AssistMark;
+                AssistChanged();
+            }
+
+            public static void AssistOff_Button_Click()
+            {
+                AssistOff();
+            }
+
+            public static void AssistSurface_Button_Click()
+            {
+                AssistSurface=!AssistSurface;
+                AssistChanged();
+            }
+
+            private static System.Collections.Generic.SortedSet<double> GetMarkerTargets()
             {
                 System.Collections.Generic.SortedSet<double> angles = new System.Collections.Generic.SortedSet<double>();
                 SFS.WorldBase.Planet planet=SFS.World.PlayerController.main.player.Value.location.Value.planet;
@@ -285,53 +342,64 @@ namespace ThrustAssistMod
 
             private static void Marker_UpdateDisplay()
             {
-                if (_markerOn)
+
+                if (_isActive)
                 {
-                    _markerOnOff_Button.Text = string.Format("{0:N3}°", _marker);
-                }
-                else
-                {
-                    _markerOnOff_Button.Text = "Marker";
+                    if (_markerOn)
+                    {
+                        _markerOnOff_Button.Text = string.Format("{0:N3}°", _marker);
+                    }
+                    else
+                    {
+                        _markerOnOff_Button.Text = "Marker";
 //~                     // ######################
 //~                     Double2 launchPadPos = SFS.Base.planetLoader.spaceCenter.LaunchPadLocation.position;
 //~                     UnityEngine.Vector2  fp32_launchPadPos = SFS.World.WorldView.ToLocalPosition(launchPadPos);
-//~                     _debug_Label.Text = string.Format("lp:{0}",fp32_launchPadPos);
+//~                     _note_Label.Text = string.Format("lp:{0}",fp32_launchPadPos);
 //~                     // ######################
+                    }
                 }
+                AssistChanged();
             }
+
 
         #endregion
 
         #region "Public properties"
+            public static bool AssistMark
+            {
+                get
+                {
+                    return _markerOn && _assistMark;
+                }
+                set
+                {
+                    _assistMark=(_markerOn && value);
+                    AssistChanged();
+                }
+            }
+
             public static bool AssistOn
             {
                 get
                 {
-                    return _assistOn;
-                }
-                set
-                {
-                    _assistOn=value;
-
-                    if (_assistOn)
-                    {
-                        if (_assistOn_Button!=null) _assistOn_Button.label.Text="Assist: Surface";
-                    }
-                    else
-                    {
-                        if (_assistOn_Button!=null) _assistOn_Button.label.Text="Assist: Off";
-                        if (_targetVelocity_Label!=null) _targetVelocity_Label.Text="";
-                    }
+                    return _assistMark || _assistSurface;
                 }
             }
 
-            public static string DebugItem
+            public static bool AssistSurface
             {
+                get
+                {
+                    return _assistSurface;
+                }
                 set
                 {
-                    _debug_Label.Text = value;
+                    _assistSurface=value;
+                    AssistChanged();
                 }
             }
+
             public static double Marker
             {
                 get
@@ -355,6 +423,11 @@ namespace ThrustAssistMod
                 {
                     _markerOn=value;
                     Marker_UpdateDisplay();
+
+                    if (!_markerOn)
+                    {
+                        _assistMark=false;
+                    }
                 }
             }
 
@@ -365,21 +438,40 @@ namespace ThrustAssistMod
             {
                 get
                 {
-                    if (_landingVelocity_UDV==null)
+                    if (_isActive && _landingVelocity_UDV!=null)
                     {
-                        return 0;
+                        return _landingVelocity_UDV.Value;
                     }
                     else
                     {
-                        return _landingVelocity_UDV.Value;
+                        return 0;
                     }
                 }
                 set
                 {
-                    if (_targetHeight_UDV!=null)
+                    if (_isActive && _targetHeight_UDV!=null)
                     {
                         _landingVelocity_UDV.Value=value ;
                     }
+                }
+            }
+
+            public static string Note
+            {
+                get
+                {
+                    if (_isActive)
+                    {
+                        return _note_Label.Text;
+                    }
+                    else
+                    {
+                        return "";
+                    }
+                }
+                set
+                {
+                    if (_isActive) _note_Label.Text = value;
                 }
             }
 
@@ -387,18 +479,18 @@ namespace ThrustAssistMod
             {
                 get
                 {
-                    if (_targetHeight_UDV==null)
+                    if (_isActive && _targetHeight_UDV!=null)
                     {
-                        return 0;
+                        return (_targetHeight_UDV.IsMinimum)?0:_targetHeight_UDV.Value;
                     }
                     else
                     {
-                        return (_targetHeight_UDV.IsMinimum)?0:_targetHeight_UDV.Value;
+                        return 0;
                     }
                 }
                 set
                 {
-                    if (_targetHeight_UDV!=null)
+                    if (_isActive && _targetHeight_UDV!=null)
                     {
                         _targetHeight_UDV.Value=(value<_targetHeight_UDV.MinValue)?_targetHeight_UDV.MinValue:value ;
                     }
@@ -409,51 +501,42 @@ namespace ThrustAssistMod
             {
                 get
                 {
-                    if (_targetThrottle_UDV==null)
+                    if (_isActive && _targetThrottle_UDV!=null)
                     {
-                        return 0;
+                        return _targetThrottle_UDV.Value;
                     }
                     else
                     {
-                        return _targetThrottle_UDV.Value;
+                        return 0;
                     }
                 }
                 set
                 {
-                    if (_targetThrottle_UDV!=null)
+                    if (_isActive && _targetThrottle_UDV!=null)
                     {
                         _targetThrottle_UDV.Value=value ;
                     }
                 }
             }
 
-            public static double TargetVelocity
-            {
-                set
-                {
-                    if (_targetVelocity_Label!=null)
-                    {
-                        if (double.IsNaN(value))
-                        {
-                            _targetVelocity_Label.Text="Target V: ???" ;
-                        }
-                        else
-                        {
-                            _targetVelocity_Label.Text=string.Format("Target V: {0:N1} m/s", value) ;
-                        }
-                    }
-                }
-            }
         #endregion
 
         #region "Public methods"
+            public static void AssistOff()
+            {
+                _assistMark=false;
+                _assistSurface=false;
+                AssistChanged();
+            }
+
             public static void ShowGUI()
             {
                 _isActive = false;
                 // Create the window holder, attach it to the currently active scene so it's removed when the scene changes.
                 windowHolder = SFS.UI.ModGUI.Builder.CreateHolder(SFS.UI.ModGUI.Builder.SceneToAttach.CurrentScene, "ThrustAssistMod GUI Holder");
                 UnityEngine.Vector2Int pos = SettingsManager.settings.windowPosition;
-                SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 290, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
+//~                 SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 290, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
+                SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 360, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
 
                 // Create a layout group for the window. This will tell the GUI builder how it should position elements of your UI.
                 window.CreateLayoutGroup(SFS.UI.ModGUI.Type.Vertical, UnityEngine.TextAnchor.MiddleCenter,10f);
@@ -464,7 +547,17 @@ namespace ThrustAssistMod
                     ThrustAssistMod.SettingsManager.Save();
                 };
 
-                _assistOn_Button = SFS.UI.ModGUI.Builder.CreateButtonWithLabel(window, 290,30, 0,0, "Assist: Off","Toggle",ChangeAssistOn);
+                {
+                    SFS.UI.ModGUI.Container assistSelect_Container =  SFS.UI.ModGUI.Builder.CreateContainer(window);
+
+                    assistSelect_Container.CreateLayoutGroup(SFS.UI.ModGUI.Type.Horizontal, UnityEngine.TextAnchor.MiddleCenter,5f);
+                    _assistSelect_Label =  SFS.UI.ModGUI.Builder.CreateLabel(assistSelect_Container, 140, 30, 0, 0, "Assist: Off");
+                    _assistSelect_Label.TextAlignment=TMPro.TextAlignmentOptions.Left;
+                    _assistOff_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistOff_Button_Click,"Off");
+                    _assistSurface_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistSurface_Button_Click,"Surf.");
+                    _assistMark_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistMark_Button_Click,"Mark");
+                }
+
                 _targetHeight_UDV = new _UpDownValueLog(window, "Height: {0:N1} m", 32 , 1, 1024);
                 _targetHeight_UDV.MinText = "Height: Surface";
                 _landingVelocity_UDV = new _UpDownValueLog(window, "Land at: {0:N1} m/s", 4, 1.0 , 10);
@@ -485,27 +578,18 @@ namespace ThrustAssistMod
                     SFS.UI.ModGUI.Builder.CreateButton(marker_Container,40,30,0,0,Marker_ForwardLandmark_Click,">>>");
                 }
 
-                _debug_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
-                _debug_Label.AutoFontResize = false;
-                _debug_Label.FontSize = 15;
-
-//~                 _targetVelocity_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 30);
-//~                 _targetVelocity_Label.AutoFontResize = false;
-//~                 _targetVelocity_Label.FontSize = 25;
+                _note_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 100);
+                _note_Label.AutoFontResize = false;
+                _note_Label.FontSize = 15;
+                _note_Label.TextAlignment=TMPro.TextAlignmentOptions.Top;
 
                 _isActive = true;
+                Marker_UpdateDisplay();
             }
 
             public static void GUIInActive()
             {
                 _isActive = false;
-            }
-
-            public static void ChangeAssistOn()
-            {
-                AssistOn=!_assistOn;
-
-                if (!_assistOn) ThrustAssistMod.Updater.SwitchOff();
             }
         #endregion
     }
