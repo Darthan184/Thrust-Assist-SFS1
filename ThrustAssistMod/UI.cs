@@ -126,6 +126,7 @@ namespace ThrustAssistMod
             private static bool _isActive=false;
             private static _UpDownValueLog _landingVelocity_UDV;
             private static double _marker=90;
+            private static double _deorbitMarker=90;
             private static SFS.UI.ModGUI.Button _markerOnOff_Button;
             private static bool _markerOn=false;
             private static SFS.UI.ModGUI.Label _note_Label;
@@ -174,6 +175,7 @@ namespace ThrustAssistMod
             public static void AssistMark_Button_Click()
             {
                 AssistMark=!AssistMark;
+                if (AssistMark) AssistSurface=false;
                 AssistChanged();
             }
 
@@ -185,6 +187,7 @@ namespace ThrustAssistMod
             public static void AssistSurface_Button_Click()
             {
                 AssistSurface=!AssistSurface;
+                if (AssistSurface) AssistMark=false;
                 AssistChanged();
             }
 
@@ -413,6 +416,18 @@ namespace ThrustAssistMod
                 }
             }
 
+            public static double DeorbitMarker
+            {
+                get
+                {
+                    return _deorbitMarker;
+                }
+                set
+                {
+                    _deorbitMarker=value;
+                }
+            }
+
             public static bool MarkerOn
             {
                 get
@@ -580,7 +595,7 @@ namespace ThrustAssistMod
 
                 _note_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 100);
                 _note_Label.AutoFontResize = false;
-                _note_Label.FontSize = 15;
+                _note_Label.FontSize = 25;
                 _note_Label.TextAlignment=TMPro.TextAlignmentOptions.Top;
 
                 _isActive = true;

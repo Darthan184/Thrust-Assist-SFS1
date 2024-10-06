@@ -19,6 +19,12 @@
             }
         }
 
-        public static double NormaliseAngle(double input) => ((input + 540.0) % 360.0) - 180.0;
+        public static double NormaliseAngle(double input) =>
+            (
+                (
+                    System.Math.Sign(input) * (System.Math.Abs(input)  % 360)
+                    + 540.0
+                ) % 360.0
+            ) - 180.0;
     }
 }
