@@ -128,6 +128,8 @@ namespace ThrustAssistMod
             private static double _marker=90;
             private static SFS.UI.ModGUI.Button _markerOnOff_Button;
             private static bool _markerOn=false;
+            private const double _markerStep_Large=1000;
+            private const double _markerStep_Small=30;
             private static SFS.UI.ModGUI.Label _note_Label;
             private static _UpDownValueLog _targetHeight_UDV;
             private static _UpDownValueLog _targetThrottle_UDV;
@@ -287,12 +289,12 @@ namespace ThrustAssistMod
 
             private static void Marker_BackLarge_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(50));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(_markerStep_Large));
             }
 
             private static void Marker_BackSmall_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(5));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker + ThrustAssistMod.Utility.MetersToDegrees(_markerStep_Small));
             }
 
             private static void Marker_ForwardLandmark_Click()
@@ -329,12 +331,12 @@ namespace ThrustAssistMod
 
             private static void Marker_ForwardLarge_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(50));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(_markerStep_Large));
             }
 
             private static void Marker_ForwardSmall_Click()
             {
-                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(5));
+                Marker = ThrustAssistMod.Utility.NormaliseAngle(Marker - ThrustAssistMod.Utility.MetersToDegrees(_markerStep_Small));
             }
 
             private static void Marker_OnOff_Click()

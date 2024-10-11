@@ -212,7 +212,7 @@ namespace ThrustAssistMod
                                             targetVelocity.x = 0;
                                         }
 
-                                        targetAcceleration = (targetVelocity-velocity)/(2.0*timeStep) - environmentAcceleration;
+                                        targetAcceleration = (targetVelocity-velocity)/timeStep - environmentAcceleration;
 
                                         if
                                             (
@@ -226,7 +226,7 @@ namespace ThrustAssistMod
                                                 double.IsNaN(targetAcceleration.x)
                                                 || !ThrustAssistMod.UI.AssistMark
                                                 || targetAcceleration.x*velocity.x>0
-                                                || velocity.x*targetDistance.x<0
+//~                                                 || velocity.x*targetDistance.x<0
                                             ) targetAcceleration.x=0;
 
                                         targetAccelerationMagnitude = targetAcceleration.magnitude;
@@ -325,7 +325,7 @@ namespace ThrustAssistMod
                                         if (note.Length!=0) note.Append("\n");
                                         note.AppendFormat
                                             (
-                                                "land in {0:F0} s"
+                                                "Land in {0:F0} s"
                                                 ,-height/velocity.y
                                             );
                                     }
