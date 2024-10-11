@@ -126,7 +126,6 @@ namespace ThrustAssistMod
             private static bool _isActive=false;
             private static _UpDownValueLog _landingVelocity_UDV;
             private static double _marker=90;
-            private static double _deorbitMarker=90;
             private static SFS.UI.ModGUI.Button _markerOnOff_Button;
             private static bool _markerOn=false;
             private static SFS.UI.ModGUI.Label _note_Label;
@@ -175,7 +174,7 @@ namespace ThrustAssistMod
             public static void AssistMark_Button_Click()
             {
                 AssistMark=!AssistMark;
-                if (AssistMark) AssistSurface=false;
+//~                 if (AssistMark) AssistSurface=false;
                 AssistChanged();
             }
 
@@ -187,7 +186,7 @@ namespace ThrustAssistMod
             public static void AssistSurface_Button_Click()
             {
                 AssistSurface=!AssistSurface;
-                if (AssistSurface) AssistMark=false;
+//~                 if (AssistSurface) AssistMark=false;
                 AssistChanged();
             }
 
@@ -413,18 +412,6 @@ namespace ThrustAssistMod
                 {
                     _marker=value;
                     Marker_UpdateDisplay();
-                }
-            }
-
-            public static double DeorbitMarker
-            {
-                get
-                {
-                    return _deorbitMarker;
-                }
-                set
-                {
-                    _deorbitMarker=value;
                 }
             }
 

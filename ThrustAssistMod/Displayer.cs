@@ -15,20 +15,38 @@
                         SFS.WorldBase.Planet planet=SFS.World.PlayerController.main.player.Value.location.Value.planet;
                         double radius=planet.Radius;
 
-                        if (System.Math.Abs(ThrustAssistMod.UI.DeorbitMarker-ThrustAssistMod.UI.Marker)>0.00001)
+                        if (ThrustAssistMod.Updater.DeorbitMarker_On)
                         {
-                            Double2 toDeorbitPoint = 0.001*Double2.CosSin(ThrustAssistMod.Utility.radiansPerDegree * ThrustAssistMod.UI.DeorbitMarker, radius*2);
+                            if (System.Math.Abs(ThrustAssistMod.Updater.DeorbitMarker_Target-ThrustAssistMod.Updater.DeorbitMarker_Minimum)>0.00001)
+                            {
+                                Double2 toDeorbitPoint = 0.001*Double2.CosSin(ThrustAssistMod.Utility.radiansPerDegree * ThrustAssistMod.Updater.DeorbitMarker_Target, radius*2);
 
-                            UnityEngine.Vector3[] deorbitPoints = new UnityEngine.Vector3[]
-                                { UnityEngine.Vector3.zero ,toDeorbitPoint.ToVector3};
+                                UnityEngine.Vector3[] deorbitPoints = new UnityEngine.Vector3[]
+                                    { UnityEngine.Vector3.zero ,toDeorbitPoint.ToVector3};
 
-                            SFS.World.Maps.Map.dashedLine.DrawLine
-                                (
-                                    deorbitPoints
-                                    ,planet
-                                    ,UnityEngine.Color.white
-                                    ,UnityEngine.Color.red
-                                );
+                                SFS.World.Maps.Map.dashedLine.DrawLine
+                                    (
+                                        deorbitPoints
+                                        ,planet
+                                        ,UnityEngine.Color.white
+                                        ,UnityEngine.Color.yellow
+                                    );
+                            }
+                            if (System.Math.Abs(ThrustAssistMod.Updater.DeorbitMarker_Minimum-ThrustAssistMod.UI.Marker)>0.00001)
+                            {
+                                Double2 toDeorbitPoint = 0.001*Double2.CosSin(ThrustAssistMod.Utility.radiansPerDegree * ThrustAssistMod.Updater.DeorbitMarker_Minimum, radius*2);
+
+                                UnityEngine.Vector3[] deorbitPoints = new UnityEngine.Vector3[]
+                                    { UnityEngine.Vector3.zero ,toDeorbitPoint.ToVector3};
+
+                                SFS.World.Maps.Map.dashedLine.DrawLine
+                                    (
+                                        deorbitPoints
+                                        ,planet
+                                        ,UnityEngine.Color.white
+                                        ,UnityEngine.Color.red
+                                    );
+                            }
                         }
 
                         Double2 toPoint = 0.001*Double2.CosSin(ThrustAssistMod.Utility.radiansPerDegree * ThrustAssistMod.UI.Marker, radius*2);
