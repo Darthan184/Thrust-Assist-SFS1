@@ -4,218 +4,416 @@ namespace ThrustAssistMod
 {
     public class Updater : UnityEngine.MonoBehaviour
     {
-        private static double NormaliseAngle(double input) => ((input + 540) % 360) - 180;
-        private static double lastTime=0;
-        private const double timeStep=0.2;
+        #region "Private fields"
+            private static double _deorbitMarker_Minimum=90;
+            private static bool _deorbitMarker_On=false;
+            private static double _deorbitMarker_Target=90;
+            private static double _lastTime=0;
+            private static double _timeStep=0.2;
+        #endregion
 
-        internal static void SwitchOff()
-        {
-            string tracePoint = "S-01";
-
-            if (ThrustAssistMod.UI.IsActive)
+        #region "Private methods"
+            private void Update()
             {
-                try
+                string tracePoint = "S-01";
+
+                if (ThrustAssistMod.UI.IsActive)
                 {
-                    if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket)
+                    try
                     {
-                        rocket.throttle.throttlePercent.Value=1;
-                        rocket.throttle.throttleOn.Value=false;
-                    }
-                }
-                catch (System.Exception excp)
-                {
-                    UnityEngine.Debug.LogErrorFormat("[ThrustAssistMod.Updater.AssistOff-{0}] {1}", tracePoint ,excp.ToString());
-                }
-            }
-        }
+                        double thisTime=SFS.World.WorldTime.main.worldTime;
+                        if (_lastTime==0 || _lastTime>thisTime) _lastTime=thisTime;
 
-        private void Update()
-        {
-            string tracePoint = "S-02";
-
-            if (ThrustAssistMod.UI.IsActive)
-            {
-                try
-                {
-                    double thisTime=SFS.World.WorldTime.main.worldTime;
-                    if (lastTime==0 || lastTime>thisTime) lastTime=thisTime;
-
-                    if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket && ThrustAssistMod.UI.AssistOn)
-                    {
-                        if (!SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main))
+                        if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket)
                         {
-                            ThrustAssistMod.UI.AssistOn=false;
-                        }
-                        else if (thisTime>lastTime+timeStep)
-                        {
-                            lastTime=thisTime;
+                            System.Text.StringBuilder note = new System.Text.StringBuilder();
 
-                            // positive is up for all vertical values
-                            double targetThrottle =ThrustAssistMod.UI.TargetThrottle;
-                            double landingVelocity =ThrustAssistMod.UI.LandingVelocity;
-                            double targetHeight = ThrustAssistMod.UI.TargetHeight;
-
-                            SFS.World.Location location = rocket.location.Value;
-                            UnityEngine.Vector2 thrustVector = UnityEngine.Vector2.zero;
-
-                            foreach (SFS.Parts.Modules.EngineModule oneEngine in rocket.partHolder.GetModules<SFS.Parts.Modules.EngineModule>())
+                            if (thisTime>_lastTime+_timeStep)
                             {
-                                if (oneEngine.engineOn.Value)
+                                _lastTime=thisTime;
+
+                                UnityEngine.Vector2 thrustVector = UnityEngine.Vector2.zero;
+                                double mass = rocket.mass.GetMass();
+                                SFS.World.Location location = rocket.location.Value;
+                                Double2 velocity =
+                                    location.velocity.Rotate(0.0 - (location.position.AngleRadians - System.Math.PI / 2.0));
+                                double gravity = -location.planet.GetGravity(location.Radius);
+                                double height =  location.TerrainHeight - rocket.GetSizeRadius();
+                                double centrifugal = velocity.x*velocity.x/location.Radius;
+
+                                foreach (SFS.Parts.Modules.EngineModule oneEngine in rocket.partHolder.GetModules<SFS.Parts.Modules.EngineModule>())
                                 {
-                                    UnityEngine.Vector2 direction = (UnityEngine.Vector2)oneEngine.transform.TransformVector(oneEngine.thrustNormal.Value);
+                                    if (oneEngine.engineOn.Value)
+                                    {
+                                        UnityEngine.Vector2 direction = (UnityEngine.Vector2)oneEngine.transform.TransformVector(oneEngine.thrustNormal.Value);
 
-                                    thrustVector += direction*oneEngine.thrust.Value;
+                                        thrustVector += direction*oneEngine.thrust.Value;
+                                    }
                                 }
+
+                                double maxThrust = thrustVector.magnitude;
+                                double targetThrottle =ThrustAssistMod.UI.TargetThrottle;
+
+                                if (ThrustAssistMod.UI.MarkerOn && velocity.sqrMagnitude>0.01)
+                                {
+                                    double maxAcceleration= 9.8 * maxThrust / mass;
+                                    Double2 stoppingDistance_Target = velocity*velocity/(2.0*maxAcceleration*targetThrottle);
+                                    Double2 stoppingDistance_Minimum = velocity*velocity/(2.0*maxAcceleration);
+
+                                    _deorbitMarker_Minimum=
+                                        ThrustAssistMod.Utility.NormaliseAngle
+                                            (
+                                                ThrustAssistMod.UI.Marker
+                                                + System.Math.Sign(velocity.x)*(stoppingDistance_Minimum.x/location.Radius)*ThrustAssistMod.Utility.degreesPerRadian
+                                            );
+
+                                    _deorbitMarker_Target=
+                                        ThrustAssistMod.Utility.NormaliseAngle
+                                            (
+                                                ThrustAssistMod.UI.Marker
+                                                + System.Math.Sign(velocity.x)*(stoppingDistance_Target.x/location.Radius)*ThrustAssistMod.Utility.degreesPerRadian
+                                            );
+
+                                    _deorbitMarker_On=true;
+                                }
+                                else
+                                {
+                                    _deorbitMarker_On=false;
+                                }
+
+                                if (ThrustAssistMod.UI.AssistOn && !SFS.World.PlayerController.main.HasControl(SFS.UI.MsgDrawer.main))
+                                {
+                                    ThrustAssistMod.UI.AssistOff();
+                                }
+
+                                if (ThrustAssistMod.UI.AssistOn)
+                                {
+                                    if (maxThrust<0.01)
+                                    {
+                                        ThrustAssistMod.UI.AssistOff();
+                                    }
+                                    else
+                                    {
+                                        // positive is up or left
+                                        Double2 forward = ((Double2)thrustVector/maxThrust).Rotate(0.0 - (location.position.AngleRadians - System.Math.PI / 2.0));
+                                        double landingVelocity =ThrustAssistMod.UI.LandingVelocity;
+                                        double targetHeight = ThrustAssistMod.UI.TargetHeight;
+                                        Double2 environmentAcceleration =Double2.up*(gravity + centrifugal);
+                                        Double2 maxRocketAcceleration = forward * 9.8 * maxThrust / mass;
+                                        Double2 maxRocketDeceleration = Double2.zero;
+                                        Double2 targetDistance = new Double2
+                                            (
+                                                -ThrustAssistMod.Utility.NormaliseAngle(ThrustAssistMod.UI.Marker - location.position.AngleDegrees)
+                                                    *ThrustAssistMod.Utility.radiansPerDegree*location.Radius
+                                                ,targetHeight-height
+                                            );
+                                        Double2 targetVelocity=Double2.zero;
+
+                                        if (!ThrustAssistMod.UI.AssistMark) targetDistance.x=0;
+                                        if (!ThrustAssistMod.UI.AssistSurface) targetDistance.y=0;
+
+                                        if ( Double2.Dot(forward,targetDistance)<0)
+                                        {
+                                            maxRocketDeceleration=maxRocketAcceleration;
+                                            maxRocketAcceleration=Double2.zero;
+                                        }
+
+
+        //~                                 double maxRocketAcceleration.y = maxRocketAcceleration*System.Math.Cos(System.Math.PI*angle/180);
+        //~                                 double velocity.y = location.VerticalVelocity;
+        //~                                 double targetDistance.y = targetHeight-height;
+
+                                        Double2 fastestAcceleration = maxRocketAcceleration + environmentAcceleration;
+                                        Double2 preferredAcceleration = maxRocketAcceleration*targetThrottle + environmentAcceleration;
+                                        Double2 fastestDeceleration = maxRocketDeceleration + environmentAcceleration;
+                                        Double2 preferredDeceleration = maxRocketDeceleration*targetThrottle + environmentAcceleration;
+
+        //~                                 double fastestAcceleration.y = ((maxRocketAcceleration.y>0)?maxRocketAcceleration.y:0) + gravity + centrifugal/2;
+        //~                                 double fastestDeceleration.y = ((maxRocketAcceleration.y>0)?0:maxRocketAcceleration.y) + gravity + centrifugal/2;
+        //~                                 double preferredAcceleration.y = ((maxRocketAcceleration.y>0)?maxRocketAcceleration.y*targetThrottle:0) + gravity + centrifugal/2;
+        //~                                 double preferredDeceleration.y = ((maxRocketAcceleration.y>0)?0:maxRocketAcceleration.y*targetThrottle) + gravity + centrifugal/2;
+
+                                        Double2 targetAcceleration = Double2.zero;
+                                        double targetAccelerationMagnitude = 0;
+                                        double portionThrustOnTarget = 0;
+                                        double targetThrust = 0;
+                                        double chosenThrust = 0;
+                                        double throttle=0;
+
+                                        if (ThrustAssistMod.UI.AssistSurface)
+                                        {
+                                            targetVelocity.y = System.Math.Sign(targetDistance.y)* System.Math.Sqrt
+                                                (
+                                                    2.0*targetDistance.y
+                                                    *System.Math.Sign(targetDistance.y)*System.Math.Sign(forward.y)
+                                                    *
+                                                        (
+                                                            (System.Math.Sign(forward.y)*preferredDeceleration.y>0)
+                                                            ?preferredDeceleration.y
+                                                            :(
+                                                                (System.Math.Abs(fastestDeceleration.y)>0.5)
+                                                                ?System.Math.Sign(forward.y)*0.5
+                                                                :fastestDeceleration.y
+                                                            )
+                                                        )
+    //~                                                 *(
+    //~                                                     (System.Math.Sign(targetDistance.y)==System.Math.Sign(forward.y))
+    //~                                                     ?(
+    //~                                                         (System.Math.Sign(forward.y)*preferredAcceleration.y>0)
+    //~                                                         ?preferredAcceleration.y
+    //~                                                         :(
+    //~                                                             (System.Math.Abs(fastestAcceleration.y)>0.5)
+    //~                                                             ?System.Math.Sign(fastestAcceleration.y)*0.5
+    //~                                                             :fastestAcceleration.y
+    //~                                                         )
+    //~                                                     )
+    //~                                                     :-(
+    //~                                                         (System.Math.Sign(forward.y)*preferredDeceleration.y>0)
+    //~                                                         ?preferredDeceleration.y
+    //~                                                         :(
+    //~                                                             (System.Math.Abs(fastestDeceleration.y)>0.5)
+    //~                                                             ?System.Math.Sign(forward.y)*0.5
+    //~                                                             :fastestDeceleration.y
+    //~                                                         )
+    //~                                                     )
+    //~                                                 )
+                                                ); // will be NaN if pointing the wrong way or descending and max vertical accelleration <gravity
+
+//~                                             if (double.IsNaN(targetVelocity.y)) targetVelocity.y=0;
+
+                                            if
+                                                (
+                                                    !double.IsNaN(targetVelocity.y)
+                                                    && targetHeight==0
+                                                    && ( targetVelocity.y<0 || height<0.5)
+                                                    && -targetVelocity.y<landingVelocity
+                                                ) targetVelocity.y= -landingVelocity;
+                                        }
+                                        else
+                                        {
+                                            targetVelocity.y = 0;
+                                        }
+
+                                        if (ThrustAssistMod.UI.AssistMark)
+                                        {
+                                            targetVelocity.x = System.Math.Sign(targetDistance.x)* System.Math.Sqrt
+                                                (
+                                                    2.0*targetDistance.x
+                                                    *(
+                                                        (System.Math.Sign(targetDistance.x)==System.Math.Sign(forward.x))
+                                                        ?preferredAcceleration.x:-preferredDeceleration.x
+                                                    )
+                                                ); // will be NaN if pointing the wrong way
+
+//~                                             if (double.IsNaN(targetVelocity.x)) targetVelocity.x=0;
+                                        }
+                                        else
+                                        {
+                                            targetVelocity.x = 0;
+                                        }
+
+                                        targetAcceleration = (targetVelocity-velocity)/_timeStep - environmentAcceleration;
+
+                                        if
+                                            (
+                                                double.IsNaN(targetAcceleration.y)
+                                                || !ThrustAssistMod.UI.AssistSurface
+                                                || (targetAcceleration.y*velocity.y>0 && targetDistance.y<0)
+                                                || System.Math.Abs(forward.y)<0.02
+                                            ) targetAcceleration.y=0;
+
+                                        if
+                                            (
+                                                double.IsNaN(targetAcceleration.x)
+                                                || !ThrustAssistMod.UI.AssistMark
+                                                || targetAcceleration.x*velocity.x>0
+                                                || System.Math.Abs(forward.x)<0.02
+//~                                                 || velocity.x*targetDistance.x<0
+                                            ) targetAcceleration.x=0;
+
+                                        targetAccelerationMagnitude = targetAcceleration.magnitude;
+
+                                        if (targetAccelerationMagnitude<0.001)
+                                        {
+                                            portionThrustOnTarget = 0;
+                                        }
+                                        else if (targetAcceleration.x!=0 && targetAcceleration.y!=0)
+                                        {
+                                            portionThrustOnTarget = System.Math.Min
+                                                (
+                                                    System.Math.Sign(targetAcceleration.x)*forward.x
+                                                    ,System.Math.Sign(targetAcceleration.y)*forward.y
+                                                );
+                                        }
+                                        else if (targetAcceleration.x!=0)
+                                        {
+                                            portionThrustOnTarget = System.Math.Sign(targetAcceleration.x)*forward.x;
+                                        }
+                                        else if (targetAcceleration.y!=0)
+                                        {
+                                            portionThrustOnTarget = System.Math.Sign(targetAcceleration.y)*forward.y;
+                                        }
+//~                                         else
+//~                                         {
+//~                                             portionThrustOnTarget = Double2.Dot(targetAcceleration,forward)/targetAccelerationMagnitude;
+//~                                         }
+
+                                        if (portionThrustOnTarget<0.01)
+                                        {
+                                            targetThrust=0;
+                                        }
+                                        else
+                                        {
+                                            targetThrust = mass*targetAccelerationMagnitude/(9.8*portionThrustOnTarget);
+                                        }
+
+                                        if (targetThrust<0.01)
+                                        {
+                                            chosenThrust = 0;
+                                        }
+                                        else if (targetThrust>maxThrust)
+                                        {
+                                            chosenThrust=maxThrust;
+                                        }
+                                        else
+                                        {
+                                            chosenThrust=targetThrust;
+                                        }
+
+                                        if (chosenThrust<0.0005)
+                                        {
+                                            throttle = 0;
+                                        }
+                                        else
+                                        {
+                                            throttle = chosenThrust/maxThrust;
+                                        }
+
+                                        if (ThrustAssistMod.UI.Debug)
+                                        {
+                                            if (ThrustAssistMod.UI.AssistMark && ThrustAssistMod.UI.AssistSurface)
+                                            {
+                                                note.AppendFormat("Target V: ({0:N1},{1:N1}) m/s", targetVelocity.x, targetVelocity.y);
+                                                note.AppendFormat(", Target A: ({0:N1},{1:N1}) m/s2", targetAcceleration.x, targetAcceleration.y);
+                                            }
+                                            else if (ThrustAssistMod.UI.AssistMark)
+                                            {
+                                                note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.x);
+                                                note.AppendFormat(", Target A: {0:N1} m/s2", targetAcceleration.x);
+                                            }
+                                            else if (ThrustAssistMod.UI.AssistSurface)
+                                            {
+                                                note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.y);
+                                                note.AppendFormat(", Target A: {0:N1} m/s2", targetAcceleration.y);
+                                            }
+                                            note.AppendFormat(", Portion: {0:P1}", portionThrustOnTarget);
+                                            note.AppendFormat(", Target T: {0:N1} t", targetThrust);
+                                        }
+                                        else
+                                        {
+                                            if (ThrustAssistMod.UI.AssistMark || ThrustAssistMod.UI.AssistSurface)
+                                            {
+                                                if ( double.IsNaN(targetVelocity.x)) targetVelocity.x=0;
+                                                if ( double.IsNaN(targetVelocity.y)) targetVelocity.y=0;
+                                                note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.magnitude);
+                                            }
+                                        }
+                                        rocket.throttle.throttlePercent.Value=(float)throttle;
+                                        rocket.throttle.throttleOn.Value=(throttle>=0.01);
+                                    }
+                                }
+                                if (!ThrustAssistMod.UI.AssistOn)
+                                {
+                                    note.Clear();
+                                }
+                                {
+                                    double timeToImpact=-height/velocity.y;
+
+                                    if (ThrustAssistMod.UI.Debug || (timeToImpact>0 && timeToImpact<100))
+                                    {
+                                        if (note.Length!=0) note.Append(ThrustAssistMod.UI.Debug?", ":"\n");
+
+                                        note.AppendFormat
+                                            (
+                                                "Land in {0:F0} s"
+                                                ,-height/velocity.y
+                                            );
+                                    }
+                                }
+
+                                ThrustAssistMod.UI.Note = note.ToString();
                             }
-
-                            double thrust = thrustVector.magnitude;
-                            double maxRocketAcceleration = 9.8 * thrust / rocket.mass.GetMass();
-                            double angle =  NormaliseAngle(location.position.AngleDegrees - rocket.GetRotation());
-                            double maxRocketAcceleration_Vertical = maxRocketAcceleration*System.Math.Cos(System.Math.PI*angle/180);
-                            double velocity_Vertical = location.VerticalVelocity;
-                            double gravity = -location.planet.GetGravity(location.Radius);
-                            double height =  location.TerrainHeight - rocket.GetSizeRadius();
-                            double targetDistance_Vertical = targetHeight-height;
-
-                            double fastestAcceleration_GoingUp = ((maxRocketAcceleration_Vertical>0)?maxRocketAcceleration_Vertical:0) + gravity;
-                            double fastestAcceleration_GoingDown = ((maxRocketAcceleration_Vertical>0)?0:maxRocketAcceleration_Vertical) + gravity;
-                            double preferredAcceleration_GoingUp = ((maxRocketAcceleration_Vertical>0)?maxRocketAcceleration_Vertical*targetThrottle:0) + gravity;
-                            double preferredAcceleration_GoingDown = ((maxRocketAcceleration_Vertical>0)?0:maxRocketAcceleration_Vertical*targetThrottle) + gravity;
-
-//~                             double preferredStoppingDistance_Vertical = - 2.0 * velocity_Vertical * velocity_Vertical /
-//~                                     (
-//~                                         (velocity_Vertical>0)
-//~                                         ?preferredAcceleration_GoingDown
-//~                                         :preferredAcceleration_GoingUp
-//~                                     );
-//~                             double minStoppingDistance_Vertical = - 2.0 * velocity_Vertical * velocity_Vertical /
-//~                                     (
-//~                                         (velocity_Vertical>0)
-//~                                         ?fastestAcceleration_GoingDown
-//~                                         :fastestAcceleration_GoingUp
-//~                                     );
-
-                            double targetVelocity_Vertical = System.Math.Sign(targetDistance_Vertical)* System.Math.Sqrt
-                                (
-                                    -2.0*targetDistance_Vertical
-                                    *(
-                                        (targetDistance_Vertical<0)
-                                        ?(
-                                            (preferredAcceleration_GoingUp>0)
-                                            ?preferredAcceleration_GoingUp
-                                            :(
-                                                (fastestAcceleration_GoingUp>0.5)
-                                                ?0.5
-                                                :fastestAcceleration_GoingUp
-                                            )
-                                        )
-                                        :preferredAcceleration_GoingDown
-                                    )
-                                ); // will be NaN if descending and max vertical accelleration <gravity
-
-//~                             double targetVelocity_Vertical =  (maxRocketAcceleration_Vertical>gravity)
-//~                                 ?System.Math.Sqrt
-//~                                     (
-//~                                         0.8*(maxRocketAcceleration_Vertical-gravity)*System.Math.Abs(targetDistance_Vertical)
-//~                                     )*System.Math.Sign(targetDistance_Vertical)
-//~                                 :0;
-
-//~                             double targetAcceleration_Vertical =  -2.0*velocity_Vertical*velocity_Vertical/targetDistance_Vertical;
-
-                            double chosenAcceleration_Vertical = 0;
-                            double throttle=0;
-
-
-                            if (double.IsNaN(targetVelocity_Vertical)) targetVelocity_Vertical=0;
-
-                            if
-                                (
-                                    targetHeight==0
-                                    && ( targetVelocity_Vertical<0 || height<0.5)
-                                    && -targetVelocity_Vertical<landingVelocity
-                                ) targetVelocity_Vertical= -landingVelocity;
-
-                            ThrustAssistMod.UI.TargetVelocity = targetVelocity_Vertical;
-
-                            chosenAcceleration_Vertical = (targetVelocity_Vertical-velocity_Vertical)/(2.0*timeStep);
-
-                            if (chosenAcceleration_Vertical>fastestAcceleration_GoingUp)
-                            {
-                                chosenAcceleration_Vertical=fastestAcceleration_GoingUp;
-                            }
-                            else if (chosenAcceleration_Vertical<fastestAcceleration_GoingDown)
-                            {
-                                chosenAcceleration_Vertical=fastestAcceleration_GoingDown;
-                            }
-//~                             if (System.Math.Abs(targetDistance_Vertical)<1.0 && targetHeight>1.5)   // near target and not landing
-//~                             {
-//~                                 chosenAcceleration_Vertical=-gravity; // hover
-//~                             }
-//~                             else if (targetDistance_Vertical>0)  // target is up
-//~                                 if
-//~                                     (
-//~                                         velocity_Vertical<=0
-//~                                         || targetAcceleration_Vertical>System.Math.Min(maxRocketAcceleration_Vertical,0)*targetThrottle+gravity
-//~                                     )
-//~                                 {
-//~                                     chosenAcceleration_Vertical=maxRocketAcceleration_Vertical+gravity;
-//~                                 }
-//~                                 else
-//~                                 {
-//~                                     chosenAcceleration_Vertical = targetAcceleration_Vertical;
-//~                                 }
-//~                             }
-//~                             else // target is down
-//~                             {
-//~                                 if
-//~                                     (
-//~                                         velocity_Vertical>=0
-//~                                         || targetAcceleration_Vertical<System.Math.Max(maxRocketAcceleration_Vertical,0)*targetThrottle+gravity
-//~                                     )
-//~                                 {
-//~                                     chosenAcceleration_Vertical=gravity-maxRocketAcceleration_Vertical;
-//~                                 }
-//~                                 else
-//~                                 {
-//~                                     chosenAcceleration_Vertical = targetAcceleration_Vertical;
-//~                                 }
-//~                             }
-
-//~                                 if (targetVelocity_Vertical<0 && -targetVelocity_Vertical>landingVelocity)  landingVelocity= -targetVelocity_Vertical;
-
-//~                                 if (targetHeight<1.5 && chosenAcceleration_Vertical*timeStep + velocity_Vertical >-landingVelocity)
-//~                                 {
-//~                                     chosenAcceleration_Vertical = - (velocity_Vertical+landingVelocity)/timeStep;
-//~                                 }
-
-                            if (maxRocketAcceleration_Vertical<0.001)
-                            {
-                                throttle = 0;
-                            }
-                            else
-                            {
-                                throttle = (chosenAcceleration_Vertical-gravity)/maxRocketAcceleration_Vertical;
-                            }
-
-                            if (throttle>1)
-                            {
-                                throttle = 1;
-                            }
-                            else if (throttle<0)
-                            {
-                                throttle = 0;
-                            }
-
-                            rocket.throttle.throttlePercent.Value=(float)throttle;
-                            rocket.throttle.throttleOn.Value=(throttle>=0.01);
                         }
                     }
-                }
-                catch (System.Exception excp)
-                {
-                    UnityEngine.Debug.LogErrorFormat("[ThrustAssistMod.Updater.Update-{0}] {1}", tracePoint ,excp.ToString());
+                    catch (System.Exception excp)
+                    {
+                        UnityEngine.Debug.LogErrorFormat("[ThrustAssistMod.Updater.Update-{0}] {1}", tracePoint ,excp.ToString());
+                    }
                 }
             }
-        }
+        #endregion
+
+        #region "Public properties"
+           public static double TimeStep
+            {
+                get
+                {
+                    return _timeStep;
+                }
+                set
+                {
+                    _timeStep=value;
+                    SettingsManager.settings.timeStep = _timeStep;
+                    ThrustAssistMod.SettingsManager.Save();
+                }
+            }
+
+           public static double DeorbitMarker_Minimum
+            {
+                get
+                {
+                    return _deorbitMarker_Minimum;
+                }
+            }
+
+            public static bool DeorbitMarker_On
+            {
+                get
+                {
+                    return _deorbitMarker_On;
+                }
+            }
+
+            public static double DeorbitMarker_Target
+            {
+                get
+                {
+                    return _deorbitMarker_Target;
+                }
+            }
+        #endregion
+
+        #region "Internal methods"
+            internal static void SwitchOff()
+            {
+                string tracePoint = "S-01";
+
+                if (ThrustAssistMod.UI.IsActive)
+                {
+                    try
+                    {
+                        if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket)
+                        {
+                            rocket.throttle.throttlePercent.Value=1;
+                            rocket.throttle.throttleOn.Value=false;
+                        }
+                    }
+                    catch (System.Exception excp)
+                    {
+                        UnityEngine.Debug.LogErrorFormat("[ThrustAssistMod.Updater.SwitchOff-{0}] {1}", tracePoint ,excp.ToString());
+                    }
+                }
+            }
+        #endregion
     }
 }

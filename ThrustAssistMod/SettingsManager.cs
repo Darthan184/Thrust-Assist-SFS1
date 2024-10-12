@@ -3,7 +3,8 @@
     [System.Serializable]
     public class UserSettings
     {
-        public float windowScale = 1f;
+        public bool debug = false;
+        public double timeStep = 0.2;
         public UnityEngine.Vector2Int windowPosition = new UnityEngine.Vector2Int( -850, -500 );
     }
 

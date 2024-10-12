@@ -8,15 +8,25 @@ namespace ThrustAssistMod
     {
         static void Postfix()
         {
-            ThrustAssistMod.UI.AssistOn=false;
+            ThrustAssistMod.UI.AssistOff();
         }
     }
+
     [HarmonyLib.HarmonyPatch(typeof(SFS.World.GameManager), "LoadSave")]
      class GameManager_LoadSave
     {
         static void Postfix()
         {
-            ThrustAssistMod.UI.AssistOn=false;
+            ThrustAssistMod.UI.AssistOff();
+        }
+    }
+
+    [HarmonyLib.HarmonyPatch(typeof(SFS.World.Maps.MapManager), "DrawTrajectories")]
+     class MapManager_DrawTrajectories
+    {
+        static void Postfix()
+        {
+            ThrustAssistMod.Displayer.MapDrawMarker();
         }
     }
 }
