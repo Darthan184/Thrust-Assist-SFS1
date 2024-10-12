@@ -48,12 +48,12 @@ If _surface_ assistance is selected and the target altutude is set to the minimu
 
 The following example is for a Lunar landing in Normal starting from a 100km orbit with plenty of thrust (earth TWR around 1 - local TWR nearly 6) the details will vary in other situations. To land with it from orbit.
 1. First enable the marker and select the position you want the land at. 
-2. Next, timewarp to a little short of the yellow dotted line on the map, point retrograde and select _marker_ assistance. When the yellow dotted line is reached the engines will start.
-3. Once you are close, select _surface_ assistance also ('Both' will be displayed) aiming for the default target altitude of 32m.
+2. Next, timewarp to a little short of the yellow dotted line on the map, point retrograde and select _marker_ and (optionally _surface_) assistance. When the yellow dotted line is reached the engines will start.
+3. Once you are close, select _surface_ assistance (if not alorady on) also ('Both' will be displayed) aiming for the default target altitude of 32m.
 4. When the marker is reached switch off _marker_ assistance.
-5. Once at the target altitude, switch 'prograde' off in SAS and manually set the direction to reduce the remaining sideways velocity to zero. Alternately, to move sidewise, tilt a little in the direction to start moving in and tilt back once the desired position is reached.
+5. Once at the target altitude, switch 'prograde' off in SAS and manually set the direction to reduce the remaining sideways velocity to zero. Alternately, to move sidewise, tilt a little in the direction to start moving in and tilt back once the desired position is reached. **Important** Ensure _marker_ assist is off (and _surface_ on) when hovering. Due to a bug I haven't located yet, the engines will cut off if tilted away and moving away from the marker if _marker_ assist is left on.  By design, the engines will cut off if _surface_ assist is switched off while hovering.
 6. Finally set SAS to Surface 0 degrees and change the target altitude to the minimum. The spacecraft will land at the specified velocity.
 
-So far I've only tried it with plenty of thrust and coming to a halt over the target, then landing. For more efficient landing or with lower thrust you might want to adjust the marker position and and angle a bit up from prograde onced descending. Will require a little practice to get this right.
+So far I've only tried it with plenty of thrust and coming to a halt over the target, then landing. For more efficient landing or with lower thrust you might want to adjust the marker position and and angle a bit up from prograde once descending. Will require a little practice to get this right.
 
-Future plans include providing thrust assistance when approaching a target. Also indicating a recommended direction for surface+marker assistance - if I can work out how to do this!
+Future plans include providing thrust assistance when approaching a target.

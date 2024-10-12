@@ -8,8 +8,8 @@ namespace ThrustAssistMod
             private static double _deorbitMarker_Minimum=90;
             private static bool _deorbitMarker_On=false;
             private static double _deorbitMarker_Target=90;
-            private static double lastTime=0;
-            private const double timeStep=0.2;
+            private static double _lastTime=0;
+            private static double _timeStep=0.2;
         #endregion
 
         #region "Private methods"
@@ -22,15 +22,15 @@ namespace ThrustAssistMod
                     try
                     {
                         double thisTime=SFS.World.WorldTime.main.worldTime;
-                        if (lastTime==0 || lastTime>thisTime) lastTime=thisTime;
+                        if (_lastTime==0 || _lastTime>thisTime) _lastTime=thisTime;
 
                         if (SFS.World.PlayerController.main.player.Value is SFS.World.Rocket rocket)
                         {
                             System.Text.StringBuilder note = new System.Text.StringBuilder();
 
-                            if (thisTime>lastTime+timeStep)
+                            if (thisTime>_lastTime+_timeStep)
                             {
-                                lastTime=thisTime;
+                                _lastTime=thisTime;
 
                                 UnityEngine.Vector2 thrustVector = UnityEngine.Vector2.zero;
                                 double mass = rocket.mass.GetMass();
@@ -212,13 +212,14 @@ namespace ThrustAssistMod
                                             targetVelocity.x = 0;
                                         }
 
-                                        targetAcceleration = (targetVelocity-velocity)/timeStep - environmentAcceleration;
+                                        targetAcceleration = (targetVelocity-velocity)/_timeStep - environmentAcceleration;
 
                                         if
                                             (
                                                 double.IsNaN(targetAcceleration.y)
                                                 || !ThrustAssistMod.UI.AssistSurface
-                                                || (targetAcceleration.y*velocity.y*targetDistance.y<0 && targetDistance.y<0)
+                                                || (targetAcceleration.y*velocity.y>0 && targetDistance.y<0)
+                                                || System.Math.Abs(forward.y)<0.02
                                             ) targetAcceleration.y=0;
 
                                         if
@@ -226,6 +227,7 @@ namespace ThrustAssistMod
                                                 double.IsNaN(targetAcceleration.x)
                                                 || !ThrustAssistMod.UI.AssistMark
                                                 || targetAcceleration.x*velocity.x>0
+                                                || System.Math.Abs(forward.x)<0.02
 //~                                                 || velocity.x*targetDistance.x<0
                                             ) targetAcceleration.x=0;
 
@@ -287,28 +289,35 @@ namespace ThrustAssistMod
                                             throttle = chosenThrust/maxThrust;
                                         }
 
-                                        if (ThrustAssistMod.UI.AssistMark || ThrustAssistMod.UI.AssistSurface)
+                                        if (ThrustAssistMod.UI.Debug)
                                         {
-                                            note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.magnitude);
+                                            if (ThrustAssistMod.UI.AssistMark && ThrustAssistMod.UI.AssistSurface)
+                                            {
+                                                note.AppendFormat("Target V: ({0:N1},{1:N1}) m/s", targetVelocity.x, targetVelocity.y);
+                                                note.AppendFormat(", Target A: ({0:N1},{1:N1}) m/s2", targetAcceleration.x, targetAcceleration.y);
+                                            }
+                                            else if (ThrustAssistMod.UI.AssistMark)
+                                            {
+                                                note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.x);
+                                                note.AppendFormat(", Target A: {0:N1} m/s2", targetAcceleration.x);
+                                            }
+                                            else if (ThrustAssistMod.UI.AssistSurface)
+                                            {
+                                                note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.y);
+                                                note.AppendFormat(", Target A: {0:N1} m/s2", targetAcceleration.y);
+                                            }
+                                            note.AppendFormat(", Portion: {0:P1}", portionThrustOnTarget);
+                                            note.AppendFormat(", Target T: {0:N1} t", targetThrust);
                                         }
-//~                                         if (ThrustAssistMod.UI.AssistMark && ThrustAssistMod.UI.AssistSurface)
-//~                                         {
-//~                                             note.AppendFormat("Target V: ({0:N1},{1:N1}) m/s", targetVelocity.x, targetVelocity.y);
-//~                                             note.AppendFormat(", Target A: ({0:N1},{1:N1}) m/s2", targetAcceleration.x, targetAcceleration.y);
-//~                                         }
-//~                                         else if (ThrustAssistMod.UI.AssistMark)
-//~                                         {
-//~                                             note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.x);
-//~                                             note.AppendFormat(", Target A: {0:N1} m/s2", targetAcceleration.x);
-//~                                         }
-//~                                         else if (ThrustAssistMod.UI.AssistSurface)
-//~                                         {
-//~                                             note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.y);
-//~                                             note.AppendFormat(", Target A: {0:N1} m/s2", targetAcceleration.y);
-//~                                         }
-//~                                         note.AppendFormat(", Portion: {0:P1}", portionThrustOnTarget);
-//~                                         note.AppendFormat(", Target T: {0:N1} t", targetThrust);
-
+                                        else
+                                        {
+                                            if (ThrustAssistMod.UI.AssistMark || ThrustAssistMod.UI.AssistSurface)
+                                            {
+                                                if ( double.IsNaN(targetVelocity.x)) targetVelocity.x=0;
+                                                if ( double.IsNaN(targetVelocity.y)) targetVelocity.y=0;
+                                                note.AppendFormat("Target V: {0:N1} m/s", targetVelocity.magnitude);
+                                            }
+                                        }
                                         rocket.throttle.throttlePercent.Value=(float)throttle;
                                         rocket.throttle.throttleOn.Value=(throttle>=0.01);
                                     }
@@ -320,9 +329,10 @@ namespace ThrustAssistMod
                                 {
                                     double timeToImpact=-height/velocity.y;
 
-                                    if (timeToImpact>0 && timeToImpact<100)
+                                    if (ThrustAssistMod.UI.Debug || (timeToImpact>0 && timeToImpact<100))
                                     {
-                                        if (note.Length!=0) note.Append("\n");
+                                        if (note.Length!=0) note.Append(ThrustAssistMod.UI.Debug?", ":"\n");
+
                                         note.AppendFormat
                                             (
                                                 "Land in {0:F0} s"
@@ -344,6 +354,20 @@ namespace ThrustAssistMod
         #endregion
 
         #region "Public properties"
+           public static double TimeStep
+            {
+                get
+                {
+                    return _timeStep;
+                }
+                set
+                {
+                    _timeStep=value;
+                    SettingsManager.settings.timeStep = _timeStep;
+                    ThrustAssistMod.SettingsManager.Save();
+                }
+            }
+
            public static double DeorbitMarker_Minimum
             {
                 get

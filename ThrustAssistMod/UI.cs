@@ -123,6 +123,7 @@ namespace ThrustAssistMod
             private static SFS.UI.ModGUI.Button _assistOff_Button;
             private static SFS.UI.ModGUI.Label _assistSelect_Label;
             private static SFS.UI.ModGUI.Button _assistSurface_Button;
+            private static bool _debug=false;
             private static bool _isActive=false;
             private static _UpDownValueLog _landingVelocity_UDV;
             private static double _marker=90;
@@ -404,6 +405,21 @@ namespace ThrustAssistMod
                 }
             }
 
+            public static bool Debug
+            {
+                get
+                {
+                    return _debug;
+                }
+                set
+                {
+                    _debug=value;
+                   _note_Label.FontSize = _debug?15:25;
+                   SettingsManager.settings.debug = _debug;
+                    ThrustAssistMod.SettingsManager.Save();
+                }
+            }
+
             public static double Marker
             {
                 get
@@ -539,6 +555,7 @@ namespace ThrustAssistMod
                 // Create the window holder, attach it to the currently active scene so it's removed when the scene changes.
                 windowHolder = SFS.UI.ModGUI.Builder.CreateHolder(SFS.UI.ModGUI.Builder.SceneToAttach.CurrentScene, "ThrustAssistMod GUI Holder");
                 UnityEngine.Vector2Int pos = SettingsManager.settings.windowPosition;
+                _debug =  SettingsManager.settings.debug;
 //~                 SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 290, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
                 SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 360, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
 
@@ -584,7 +601,7 @@ namespace ThrustAssistMod
 
                 _note_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 290, 100);
                 _note_Label.AutoFontResize = false;
-                _note_Label.FontSize = 25;
+                _note_Label.FontSize = _debug?15:25;
                 _note_Label.TextAlignment=TMPro.TextAlignmentOptions.Top;
 
                 _isActive = true;
