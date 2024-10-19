@@ -54,27 +54,35 @@ namespace ThrustAssistMod
                                 double maxThrust = thrustVector.magnitude;
                                 double targetThrottle =ThrustAssistMod.UI.TargetThrottle;
 
-                                if (ThrustAssistMod.UI.MarkerOn && velocity.sqrMagnitude>0.01)
+                                if (ThrustAssistMod.UI.MarkerOn)
                                 {
-                                    double maxAcceleration= 9.8 * maxThrust / mass;
-                                    Double2 stoppingDistance_Target = velocity*velocity/(2.0*maxAcceleration*targetThrottle);
-                                    Double2 stoppingDistance_Minimum = velocity*velocity/(2.0*maxAcceleration);
+                                    ThrustAssistMod.UI.MarkerDirection = System.Math.Sign
+                                        ( ThrustAssistMod.Utility.NormaliseAngle
+                                            (location.position.AngleDegrees-ThrustAssistMod.UI.Marker)
+                                        );
 
-                                    _deorbitMarker_Minimum=
-                                        ThrustAssistMod.Utility.NormaliseAngle
-                                            (
-                                                ThrustAssistMod.UI.Marker
-                                                + System.Math.Sign(velocity.x)*(stoppingDistance_Minimum.x/location.Radius)*ThrustAssistMod.Utility.degreesPerRadian
-                                            );
+                                    if (velocity.sqrMagnitude>0.01)
+                                    {
+                                        double maxAcceleration= 9.8 * maxThrust / mass;
+                                        Double2 stoppingDistance_Target = velocity*velocity/(2.0*maxAcceleration*targetThrottle);
+                                        Double2 stoppingDistance_Minimum = velocity*velocity/(2.0*maxAcceleration);
 
-                                    _deorbitMarker_Target=
-                                        ThrustAssistMod.Utility.NormaliseAngle
-                                            (
-                                                ThrustAssistMod.UI.Marker
-                                                + System.Math.Sign(velocity.x)*(stoppingDistance_Target.x/location.Radius)*ThrustAssistMod.Utility.degreesPerRadian
-                                            );
+                                        _deorbitMarker_Minimum=
+                                            ThrustAssistMod.Utility.NormaliseAngle
+                                                (
+                                                    ThrustAssistMod.UI.Marker
+                                                    + System.Math.Sign(velocity.x)*(stoppingDistance_Minimum.x/location.Radius)*ThrustAssistMod.Utility.degreesPerRadian
+                                                );
 
-                                    _deorbitMarker_On=true;
+                                        _deorbitMarker_Target=
+                                            ThrustAssistMod.Utility.NormaliseAngle
+                                                (
+                                                    ThrustAssistMod.UI.Marker
+                                                    + System.Math.Sign(velocity.x)*(stoppingDistance_Target.x/location.Radius)*ThrustAssistMod.Utility.degreesPerRadian
+                                                );
+
+                                        _deorbitMarker_On=true;
+                                    }
                                 }
                                 else
                                 {
@@ -237,7 +245,7 @@ namespace ThrustAssistMod
                                         {
                                             portionThrustOnTarget = 0;
                                         }
-                                        else if (targetAcceleration.x!=0 && targetAcceleration.y!=0)
+                                        else if (targetAcceleration.x!=0 && targetAcceleration.y!=0 && targetAcceleration.x*forward.x>0 && targetAcceleration.y*forward.y>0)
                                         {
                                             portionThrustOnTarget = System.Math.Min
                                                 (
@@ -245,13 +253,17 @@ namespace ThrustAssistMod
                                                     ,System.Math.Sign(targetAcceleration.y)*forward.y
                                                 );
                                         }
-                                        else if (targetAcceleration.x!=0)
+                                        else if (targetAcceleration.y!=0 && targetAcceleration.y*forward.y>0)
+                                        {
+                                            portionThrustOnTarget = System.Math.Sign(targetAcceleration.y)*forward.y;
+                                        }
+                                        else if (targetAcceleration.x!=0 && targetAcceleration.x*forward.x>0)
                                         {
                                             portionThrustOnTarget = System.Math.Sign(targetAcceleration.x)*forward.x;
                                         }
-                                        else if (targetAcceleration.y!=0)
+                                        else
                                         {
-                                            portionThrustOnTarget = System.Math.Sign(targetAcceleration.y)*forward.y;
+                                            portionThrustOnTarget = 0;
                                         }
 //~                                         else
 //~                                         {
@@ -344,17 +356,34 @@ namespace ThrustAssistMod
                                 ThrustAssistMod.UI.Note = note.ToString();
                             }
                         }
+                        else
+                        {
+                            ThrustAssistMod.UI.MarkerDirection = 0;
+                        }
                     }
                     catch (System.Exception excp)
                     {
                         UnityEngine.Debug.LogErrorFormat("[ThrustAssistMod.Updater.Update-{0}] {1}", tracePoint ,excp.ToString());
                     }
                 }
+                else
+                {
+                    ThrustAssistMod.UI.MarkerDirection = 0;
+                }
             }
         #endregion
 
         #region "Public properties"
-           public static double TimeStep
+            public static double DeorbitMarker_Minimum
+            { get {return _deorbitMarker_Minimum; } }
+
+            public static bool DeorbitMarker_On
+            { get { return _deorbitMarker_On; } }
+
+            public static double DeorbitMarker_Target
+            { get { return _deorbitMarker_Target; } }
+
+            public static double TimeStep
             {
                 get
                 {
@@ -365,30 +394,6 @@ namespace ThrustAssistMod
                     _timeStep=value;
                     SettingsManager.settings.timeStep = _timeStep;
                     ThrustAssistMod.SettingsManager.Save();
-                }
-            }
-
-           public static double DeorbitMarker_Minimum
-            {
-                get
-                {
-                    return _deorbitMarker_Minimum;
-                }
-            }
-
-            public static bool DeorbitMarker_On
-            {
-                get
-                {
-                    return _deorbitMarker_On;
-                }
-            }
-
-            public static double DeorbitMarker_Target
-            {
-                get
-                {
-                    return _deorbitMarker_Target;
                 }
             }
         #endregion

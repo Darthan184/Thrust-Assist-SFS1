@@ -7,19 +7,23 @@ namespace ThrustAssistMod
         #region "Private classes"
             private class _UpDownValueLog
             {
+                double _fineStep;
                 string _formatText;
+                double _max;
                 double _maxLog;
+                double _min;
                 double _minLog;
                 string _minText="";
                 int _steps;
                 double _valueLog;
+                double _valueFine;
                 private SFS.UI.ModGUI.Label _value_Label;
 
                 public string MinText
                 {  get { return  _minText; } set {  _minText=value; } }
 
                 public bool IsMinimum
-                {  get { return  _valueLog==_minLog; }}
+                {  get { return  (_valueLog==_minLog && _valueFine<=0); }}
 
                 public double MinValue
                 {  get { return System.Math.Log(_minLog); }}
@@ -28,17 +32,29 @@ namespace ThrustAssistMod
                 {
                     get
                     {
-                        return System.Math.Exp(_valueLog);
+                        double result = System.Math.Exp(_valueLog)+_valueFine;
+
+                        if (result<=_min)
+                        {
+                            result =_min;
+                        }
+                        else if (result>=_max)
+                        {
+                            result =_max;
+                        }
+                        return result;
                     }
                     set
                     {
                         _valueLog = System.Math.Log(value);
+                        _valueFine = 0;
                         _value_Label.Text = string.Format(_formatText, value);
                     }
                 }
 
                 private void Value_DownButton_Click()
                 {
+                    _valueFine = 0;
                     _valueLog -= (_maxLog-_minLog)/_steps;
                     if (_valueLog<_minLog) _valueLog=_minLog;
 
@@ -48,12 +64,29 @@ namespace ThrustAssistMod
                     }
                     else
                     {
-                        _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+                        _value_Label.Text = string.Format(_formatText, Value);
+                    }
+                }
+
+                private void Value_DownFineButton_Click()
+                {
+                    _valueFine -= _fineStep;
+
+                    if (Value>_min)
+                    {
+                        _value_Label.Text = string.Format(_formatText, Value);
+                    }
+                    else
+                    {
+                        _valueLog=_minLog;
+                        _valueFine=0;
+                        if  (_minText!="") _value_Label.Text = _minText;
                     }
                 }
 
                 private void Value_MinButton_Click()
                 {
+                    _valueFine = 0;
                     _valueLog=_minLog;
                     if (_minText!="")
                     {
@@ -61,21 +94,35 @@ namespace ThrustAssistMod
                     }
                     else
                     {
-                        _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+                        _value_Label.Text = string.Format(_formatText, Value);
                     }
                 }
 
                 private void Value_MaxButton_Click()
                 {
+                    _valueFine = 0;
                     _valueLog=_maxLog;
-                    _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+                    _value_Label.Text = string.Format(_formatText, Value);
                 }
 
                 private void Value_UpButton_Click()
                 {
+                    _valueFine = 0;
                     _valueLog += (_maxLog-_minLog)/_steps;
                     if (_valueLog>_maxLog) _valueLog=_maxLog;
-                    _value_Label.Text = string.Format(_formatText, System.Math.Exp(_valueLog));
+                    _value_Label.Text = string.Format(_formatText, Value);
+                }
+
+                private void Value_UpFineButton_Click()
+                {
+                    _valueFine += _fineStep;
+
+                    if (Value>=_max)
+                    {
+                        _valueLog=_maxLog;
+                        _valueFine=0;
+                    }
+                    _value_Label.Text = string.Format(_formatText,Value);
                 }
 
                 public _UpDownValueLog
@@ -86,26 +133,49 @@ namespace ThrustAssistMod
                         ,double min=1.0
                         ,double max=10.0
                         ,int steps=10
+                        ,double fineStep=0
                     )
                 {
+                    _fineStep = fineStep;
                     _formatText=formatText;
+                    _max = max;
                     _maxLog = System.Math.Log(max);
+                    _min = min;
                     _minLog = System.Math.Log(min);
                     _steps=steps;
+                    _valueFine=0;
                     _valueLog=System.Math.Log(value);
 
                     SFS.UI.ModGUI.Container value_Container =  SFS.UI.ModGUI.Builder.CreateContainer(window);
                     value_Container.CreateLayoutGroup(SFS.UI.ModGUI.Type.Horizontal, UnityEngine.TextAnchor.MiddleCenter,5f);
 
-                    SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MinButton_Click,"<<");
-                    SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownButton_Click,"<");
+                    if (_fineStep!=0)
+                    {
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MinButton_Click,"<<<");
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownButton_Click,"<<");
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownFineButton_Click,"<");
+                    }
+                    else
+                    {
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MinButton_Click,"<<");
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownButton_Click,"<");
+                    }
 
-                    _value_Label = SFS.UI.ModGUI.Builder.CreateLabel(value_Container, 210, 20, 0, 0, string.Format(_formatText, value));
+                    _value_Label = SFS.UI.ModGUI.Builder.CreateLabel(value_Container, (_fineStep!=0)?140:210, 20, 0, 0, string.Format(_formatText, value));
                     _value_Label.AutoFontResize=false;
                     _value_Label.FontSize=25;
 
-                    SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpButton_Click,">");
-                    SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MaxButton_Click,">>");
+                    if (_fineStep!=0)
+                    {
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpFineButton_Click,">");
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpButton_Click,">>");
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MaxButton_Click,">>>");
+                    }
+                    else
+                    {
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpButton_Click,">");
+                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MaxButton_Click,">>");
+                    }
                 }
             }
         #endregion
@@ -127,6 +197,7 @@ namespace ThrustAssistMod
             private static bool _isActive=false;
             private static _UpDownValueLog _landingVelocity_UDV;
             private static double _marker=90;
+            private static int _markerDirection = 0;
             private static SFS.UI.ModGUI.Button _markerOnOff_Button;
             private static bool _markerOn=false;
             private const double _markerStep_Large=1000;
@@ -353,6 +424,15 @@ namespace ThrustAssistMod
                     if (_markerOn)
                     {
                         _markerOnOff_Button.Text = string.Format("{0:N3}°", _marker);
+
+                        if (_markerDirection<0)
+                        {
+                            _markerOnOff_Button.Text = "<" +  _markerOnOff_Button.Text;
+                        }
+                        else if (_markerDirection>0)
+                        {
+                            _markerOnOff_Button.Text =  _markerOnOff_Button.Text + ">";
+                        }
                     }
                     else
                     {
@@ -430,6 +510,17 @@ namespace ThrustAssistMod
                 {
                     _marker=value;
                     Marker_UpdateDisplay();
+                }
+            }
+
+            public static int MarkerDirection
+            {
+                get { return _markerDirection; }
+                set
+                {
+                    int oldValue = _markerDirection;
+                    _markerDirection = value;
+                    if (oldValue!=value) Marker_UpdateDisplay();
                 }
             }
 
@@ -579,8 +670,8 @@ namespace ThrustAssistMod
                     _assistMark_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistMark_Button_Click,"Mark");
                 }
 
-                _targetHeight_UDV = new _UpDownValueLog(window, "Height: {0:N1} m", 32 , 1, 1024);
-                _targetHeight_UDV.MinText = "Height: Surface";
+                _targetHeight_UDV = new _UpDownValueLog(window, "H: {0:F1} m", 32 , 1, 1024,10,0.5);
+                _targetHeight_UDV.MinText = "H: Surface";
                 _landingVelocity_UDV = new _UpDownValueLog(window, "Land at: {0:N1} m/s", 4, 1.0 , 10);
                 _targetThrottle_UDV = new _UpDownValueLog(window, "Throttle: {0:P0}", 0.8, 0.05 , 1.0, 15);
 
