@@ -1,4 +1,6 @@
-﻿namespace ThrustAssistMod
+﻿using System.Linq; // contains extensions
+
+namespace ThrustAssistMod
 {
     public class Main : ModLoader.Mod
     {
@@ -7,7 +9,7 @@
         public override string DisplayName => "Thrust Assist";
         public override string Author => "Darthan";
         public override string MinimumGameVersionNecessary => "1.5.10.2";
-        public override string ModVersion => "v0.6.1";
+        public override string ModVersion => "v0.7";
         public override string Description => "Thrust Assistance Mod";
         public override System.Collections.Generic.Dictionary<string, string> Dependencies { get; } =
             new System.Collections.Generic.Dictionary<string, string> { { "UITools", "1.1.5" } };
@@ -26,6 +28,7 @@
         public static SFS.IO.FolderPath modFolder;
         public static ThrustAssistMod.Updater updater;
         public static ThrustAssistMod.Displayer displayer;
+        public static HarmonyLib.Traverse ANAISTraverse = null;
 
 
         // This initializes the patcher. This is required if you use any Harmony patches.
@@ -48,6 +51,16 @@
             UnityEngine.GameObject.DontDestroyOnLoad((updater = new UnityEngine.GameObject("Thrust Assist-Updater").AddComponent<ThrustAssistMod.Updater>()).gameObject);
             ModLoader.Helpers.SceneHelper.OnWorldSceneLoaded += ThrustAssistMod.UI.ShowGUI;
             ModLoader.Helpers.SceneHelper.OnWorldSceneUnloaded += ThrustAssistMod.UI.GUIInActive;
+            try
+            {
+                System.Reflection.Assembly ANAISAssembly = ModLoader.Loader.main.GetLoadedMods().First(mod => mod.ModNameID == "ANAIS").GetType().Assembly;
+                System.Type velocityArrowPatch = ANAISAssembly.GetTypes().First(type => type.Name == "VelocityArrowDrawer_OnLocationChange_Patch");
+                ANAISTraverse = HarmonyLib.Traverse.Create(velocityArrowPatch);
+            }
+            catch
+            {
+                ANAISTraverse=null;
+            }
         }
     }
 }

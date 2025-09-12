@@ -187,8 +187,11 @@ namespace ThrustAssistMod
             // Random window ID to avoid conflicts with other mods.
             private static readonly int MainWindowID = SFS.UI.ModGUI.Builder.GetRandomID();
 
+            private static bool _anaisOn=false;
+            private static bool _assistANAIS=false;
             private static bool _assistSurface=false;
             private static bool _assistMark=false;
+            private static SFS.UI.ModGUI.Button _assistANAIS_Button;
             private static SFS.UI.ModGUI.Button _assistMark_Button;
             private static SFS.UI.ModGUI.Button _assistOff_Button;
             private static SFS.UI.ModGUI.Label _assistSelect_Label;
@@ -210,13 +213,15 @@ namespace ThrustAssistMod
         #region "Private methods"
             private static void AssistChanged()
             {
-                if (_isActive && _assistMark_Button!=null && _assistSurface_Button!=null && _assistOff_Button!=null && _assistSelect_Label!=null)
+                if (_isActive && _assistMark_Button!=null && _assistSurface_Button!=null && _assistOff_Button!=null && _assistANAIS_Button!=null && _assistSelect_Label!=null)
                 {
+                    _assistANAIS_Button.Active=_anaisOn;
+                    _assistANAIS_Button.Text=_assistANAIS?"ANAIS":"anais";
                     _assistMark_Button.Active=_markerOn;
                     _assistMark_Button.Text=_assistMark?"Mark":"mark";
                     _assistSurface_Button.Text=_assistSurface?"Surf.":"surf";
 
-                    if (!_assistSurface && !_assistMark)
+                    if (!AssistSurface && !AssistMark && !AssistANAIS)
                     {
                         _assistOff_Button.Text="Off";
                         ThrustAssistMod.Updater.SwitchOff();
@@ -238,6 +243,10 @@ namespace ThrustAssistMod
                     {
                         _assistSelect_Label.Text="Assist: Mark";
                     }
+                    else if (_assistANAIS)
+                    {
+                        _assistSelect_Label.Text="Assist: ANAIS";
+                    }
                     else
                     {
                         _assistSelect_Label.Text="Assist: Off";
@@ -245,9 +254,22 @@ namespace ThrustAssistMod
                 }
             }
 
+            public static void AssistANAIS_Button_Click()
+            {
+                AssistANAIS=!AssistANAIS;
+
+                if (AssistANAIS)
+                {
+                    AssistMark=false;
+                    AssistSurface=false;
+                }
+                AssistChanged();
+            }
+
             public static void AssistMark_Button_Click()
             {
                 AssistMark=!AssistMark;
+                AssistANAIS=false;
 //~                 if (AssistMark) AssistSurface=false;
                 AssistChanged();
             }
@@ -260,6 +282,7 @@ namespace ThrustAssistMod
             public static void AssistSurface_Button_Click()
             {
                 AssistSurface=!AssistSurface;
+                AssistANAIS=false;
 //~                 if (AssistSurface) AssistMark=false;
                 AssistChanged();
             }
@@ -418,7 +441,6 @@ namespace ThrustAssistMod
 
             private static void Marker_UpdateDisplay()
             {
-
                 if (_isActive)
                 {
                     if (_markerOn)
@@ -451,6 +473,38 @@ namespace ThrustAssistMod
         #endregion
 
         #region "Public properties"
+            public static bool ANAISOn
+            {
+                get
+                {
+                    return _anaisOn;
+                }
+                set
+                {
+                    bool wasOn = _anaisOn;
+                    _anaisOn=value;
+
+                    if (!_anaisOn)
+                    {
+                        _assistANAIS=false;
+                    }
+                    if (wasOn != _anaisOn) AssistChanged();
+                }
+            }
+
+            public static bool AssistANAIS
+            {
+                get
+                {
+                    return _anaisOn && _assistANAIS;
+                }
+                set
+                {
+                    _assistANAIS=(_anaisOn && value);
+                    AssistChanged();
+                }
+            }
+
             public static bool AssistMark
             {
                 get
@@ -468,7 +522,7 @@ namespace ThrustAssistMod
             {
                 get
                 {
-                    return _assistMark || _assistSurface;
+                    return _assistMark || _assistSurface || _assistANAIS;
                 }
             }
 
@@ -633,8 +687,14 @@ namespace ThrustAssistMod
         #endregion
 
         #region "Public methods"
+            public static void ANAISCheck()
+            {
+               ANAISOn = Main.ANAISTraverse!=null && Main.ANAISTraverse.Field("_navState").GetValue().ToString() != "DEFAULT";
+            }
+
             public static void AssistOff()
             {
+                _assistANAIS=false;
                 _assistMark=false;
                 _assistSurface=false;
                 AssistChanged();
@@ -648,7 +708,7 @@ namespace ThrustAssistMod
                 UnityEngine.Vector2Int pos = SettingsManager.settings.windowPosition;
                 _debug =  SettingsManager.settings.debug;
 //~                 SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 290, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
-                SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 360, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
+                SFS.UI.ModGUI.Window window = SFS.UI.ModGUI.Builder.CreateWindow(windowHolder.transform, MainWindowID, 360, 400, pos.x, pos.y, true, true, 0.95f, "Thrust Assist");
 
                 // Create a layout group for the window. This will tell the GUI builder how it should position elements of your UI.
                 window.CreateLayoutGroup(SFS.UI.ModGUI.Type.Vertical, UnityEngine.TextAnchor.MiddleCenter,10f);
@@ -659,15 +719,15 @@ namespace ThrustAssistMod
                     ThrustAssistMod.SettingsManager.Save();
                 };
 
+                _assistSelect_Label =  SFS.UI.ModGUI.Builder.CreateLabel(window, 140, 30, 0, 0, "Assist: Off");
                 {
                     SFS.UI.ModGUI.Container assistSelect_Container =  SFS.UI.ModGUI.Builder.CreateContainer(window);
-
                     assistSelect_Container.CreateLayoutGroup(SFS.UI.ModGUI.Type.Horizontal, UnityEngine.TextAnchor.MiddleCenter,5f);
-                    _assistSelect_Label =  SFS.UI.ModGUI.Builder.CreateLabel(assistSelect_Container, 140, 30, 0, 0, "Assist: Off");
                     _assistSelect_Label.TextAlignment=TMPro.TextAlignmentOptions.Left;
                     _assistOff_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistOff_Button_Click,"Off");
                     _assistSurface_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistSurface_Button_Click,"Surf.");
                     _assistMark_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistMark_Button_Click,"Mark");
+                    _assistANAIS_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistANAIS_Button_Click,"ANAIS");
                 }
 
                 _targetHeight_UDV = new _UpDownValueLog(window, "H: {0:F1} m", 32 , 1, 1024,10,0.5);
