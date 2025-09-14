@@ -4,26 +4,80 @@ namespace ThrustAssistMod
 {
     public class UI
     {
+        #region "Public enums"
+            public enum ANAIS_State_Enum { Off, OrbitChange, FinalApproach }
+        #endregion
+
         #region "Private classes"
             private class _UpDownValueLog
             {
+                SFS.UI.ModGUI.Button _downButton=null;
+                SFS.UI.ModGUI.Button _downFineButton=null;
                 double _fineStep;
                 string _formatText;
+                bool _isUnused=false;
                 double _max;
+                SFS.UI.ModGUI.Button _maxButton=null;
                 double _maxLog;
                 double _min;
+                SFS.UI.ModGUI.Button _minButton=null;
                 double _minLog;
                 string _minText="";
                 int _steps;
+                SFS.UI.ModGUI.Button _upButton=null;
+                SFS.UI.ModGUI.Button _upFineButton=null;
                 double _valueLog;
                 double _valueFine;
                 private SFS.UI.ModGUI.Label _value_Label;
 
-                public string MinText
-                {  get { return  _minText; } set {  _minText=value; } }
+                public string FormatText
+                {
+                    get { return  _formatText; }
+                    set
+                    {
+                        _formatText=value;
+
+                        if (_valueLog==_minLog && _minText!="")
+                        {
+                            _value_Label.Text = _minText;
+                        }
+                        else
+                        {
+                            _value_Label.Text = string.Format(_formatText, Value);
+                        }
+                    }
+                }
+
+                public bool IsUnused
+                {
+                    get { return _isUnused; }
+                    set
+                    {
+                        _isUnused = value;
+                        _value_Label.Color = _isUnused?UnityEngine.Color.grey:UnityEngine.Color.white;
+                    }
+                }
 
                 public bool IsMinimum
                 {  get { return  (_valueLog==_minLog && _valueFine<=0); }}
+
+                public string MinText
+                {
+                    get { return  _minText; }
+                    set
+                    {
+                        _minText=value;
+
+                        if (_valueLog==_minLog && _minText!="")
+                        {
+                            _value_Label.Text = _minText;
+                        }
+                        else
+                        {
+                            _value_Label.Text = string.Format(_formatText, Value);
+                        }
+                    }
+                }
 
                 public double MinValue
                 {  get { return System.Math.Log(_minLog); }}
@@ -151,14 +205,14 @@ namespace ThrustAssistMod
 
                     if (_fineStep!=0)
                     {
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MinButton_Click,"<<<");
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownButton_Click,"<<");
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownFineButton_Click,"<");
+                        _minButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MinButton_Click,"<<<");
+                        _downButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownButton_Click,"<<");
+                        _downFineButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownFineButton_Click,"<");
                     }
                     else
                     {
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MinButton_Click,"<<");
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownButton_Click,"<");
+                        _downButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MinButton_Click,"<<");
+                        _downFineButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_DownButton_Click,"<");
                     }
 
                     _value_Label = SFS.UI.ModGUI.Builder.CreateLabel(value_Container, (_fineStep!=0)?140:210, 20, 0, 0, string.Format(_formatText, value));
@@ -167,14 +221,14 @@ namespace ThrustAssistMod
 
                     if (_fineStep!=0)
                     {
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpFineButton_Click,">");
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpButton_Click,">>");
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MaxButton_Click,">>>");
+                        _upFineButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpFineButton_Click,">");
+                        _upButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpButton_Click,">>");
+                        _maxButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MaxButton_Click,">>>");
                     }
                     else
                     {
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpButton_Click,">");
-                        SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MaxButton_Click,">>");
+                        _upFineButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_UpButton_Click,">");
+                        _upButton=SFS.UI.ModGUI.Builder.CreateButton(value_Container,30,30,0,0,Value_MaxButton_Click,">>");
                     }
                 }
             }
@@ -187,7 +241,7 @@ namespace ThrustAssistMod
             // Random window ID to avoid conflicts with other mods.
             private static readonly int MainWindowID = SFS.UI.ModGUI.Builder.GetRandomID();
 
-            private static bool _anaisOn=false;
+            private static ANAIS_State_Enum _anais_State=ANAIS_State_Enum.Off;
             private static bool _assistANAIS=false;
             private static bool _assistSurface=false;
             private static bool _assistMark=false;
@@ -206,7 +260,7 @@ namespace ThrustAssistMod
             private const double _markerStep_Large=1000;
             private const double _markerStep_Small=30;
             private static SFS.UI.ModGUI.Label _note_Label;
-            private static _UpDownValueLog _targetHeight_UDV;
+            private static _UpDownValueLog _minDistance_UDV;
             private static _UpDownValueLog _targetThrottle_UDV;
         #endregion
 
@@ -215,13 +269,13 @@ namespace ThrustAssistMod
             {
                 if (_isActive && _assistMark_Button!=null && _assistSurface_Button!=null && _assistOff_Button!=null && _assistANAIS_Button!=null && _assistSelect_Label!=null)
                 {
-                    _assistANAIS_Button.Active=_anaisOn;
+                    _assistANAIS_Button.Active=(_anais_State!=ANAIS_State_Enum.Off);
                     _assistANAIS_Button.Text=_assistANAIS?"ANAIS":"anais";
                     _assistMark_Button.Active=_markerOn;
                     _assistMark_Button.Text=_assistMark?"Mark":"mark";
                     _assistSurface_Button.Text=_assistSurface?"Surf.":"surf";
 
-                    if (!AssistSurface && !AssistMark && !AssistANAIS)
+                    if (!_assistSurface && !_assistMark && !_assistANAIS)
                     {
                         _assistOff_Button.Text="Off";
                         ThrustAssistMod.Updater.SwitchOff();
@@ -229,6 +283,45 @@ namespace ThrustAssistMod
                     else
                     {
                         _assistOff_Button.Text="off";
+                    }
+
+                    if (_assistSurface)
+                    {
+                        _minDistance_UDV.IsUnused = false;
+                    }
+                    else if (_assistANAIS && _anais_State==ANAIS_State_Enum.FinalApproach)
+                    {
+                        _minDistance_UDV.IsUnused = false;
+                    }
+                    else
+                    {
+                        _minDistance_UDV.IsUnused = true;
+                    }
+
+                    _landingVelocity_UDV.IsUnused = !_assistSurface;
+
+                    if (_assistSurface || _assistMark)
+                    {
+                        _targetThrottle_UDV.IsUnused = false;
+                    }
+                    else if (_assistANAIS && _anais_State==ANAIS_State_Enum.FinalApproach)
+                    {
+                        _targetThrottle_UDV.IsUnused = false;
+                    }
+                    else
+                    {
+                        _targetThrottle_UDV.IsUnused = true;
+                    }
+
+                    if (_assistSurface)
+                    {
+                        _minDistance_UDV.FormatText = "H: {0:F1} m" ;
+                        _minDistance_UDV.MinText = "H: Surface";
+                    }
+                    else if (_assistANAIS)
+                    {
+                        _minDistance_UDV.FormatText = "D: {0:F1} m" ;
+                        _minDistance_UDV.MinText = "D: min";
                     }
 
                     if (_assistSurface && _assistMark)
@@ -473,22 +566,11 @@ namespace ThrustAssistMod
         #endregion
 
         #region "Public properties"
-            public static bool ANAISOn
+            public static ANAIS_State_Enum ANAIS_State
             {
                 get
                 {
-                    return _anaisOn;
-                }
-                set
-                {
-                    bool wasOn = _anaisOn;
-                    _anaisOn=value;
-
-                    if (!_anaisOn)
-                    {
-                        _assistANAIS=false;
-                    }
-                    if (wasOn != _anaisOn) AssistChanged();
+                    return _anais_State;
                 }
             }
 
@@ -496,12 +578,13 @@ namespace ThrustAssistMod
             {
                 get
                 {
-                    return _anaisOn && _assistANAIS;
+                    return (_anais_State != ANAIS_State_Enum.Off) && _assistANAIS;
                 }
                 set
                 {
-                    _assistANAIS=(_anaisOn && value);
-                    AssistChanged();
+                    bool assistANAIS_Old = _assistANAIS;
+                    _assistANAIS=((_anais_State != ANAIS_State_Enum.Off) && value);
+                    if (assistANAIS_Old != _assistANAIS) AssistChanged();
                 }
             }
 
@@ -513,8 +596,9 @@ namespace ThrustAssistMod
                 }
                 set
                 {
+                    bool assistMark_Old = _assistMark;
                     _assistMark=(_markerOn && value);
-                    AssistChanged();
+                    if (assistMark_Old != _assistMark) AssistChanged();
                 }
             }
 
@@ -534,8 +618,9 @@ namespace ThrustAssistMod
                 }
                 set
                 {
+                    bool assistSurface_Old = _assistSurface;
                     _assistSurface=value;
-                    AssistChanged();
+                    if (assistSurface_Old != _assistSurface) AssistChanged();
                 }
             }
 
@@ -614,7 +699,7 @@ namespace ThrustAssistMod
                 }
                 set
                 {
-                    if (_isActive && _targetHeight_UDV!=null)
+                    if (_isActive && _minDistance_UDV!=null)
                     {
                         _landingVelocity_UDV.Value=value ;
                     }
@@ -640,13 +725,13 @@ namespace ThrustAssistMod
                 }
             }
 
-            public static double TargetHeight
+            public static double MinDistance
             {
                 get
                 {
-                    if (_isActive && _targetHeight_UDV!=null)
+                    if (_isActive && _minDistance_UDV!=null)
                     {
-                        return (_targetHeight_UDV.IsMinimum)?0:_targetHeight_UDV.Value;
+                        return (_minDistance_UDV.IsMinimum)?0:_minDistance_UDV.Value;
                     }
                     else
                     {
@@ -655,9 +740,9 @@ namespace ThrustAssistMod
                 }
                 set
                 {
-                    if (_isActive && _targetHeight_UDV!=null)
+                    if (_isActive && _minDistance_UDV!=null)
                     {
-                        _targetHeight_UDV.Value=(value<_targetHeight_UDV.MinValue)?_targetHeight_UDV.MinValue:value ;
+                        _minDistance_UDV.Value=(value<_minDistance_UDV.MinValue)?_minDistance_UDV.MinValue:value ;
                     }
                 }
             }
@@ -689,7 +774,24 @@ namespace ThrustAssistMod
         #region "Public methods"
             public static void ANAISCheck()
             {
-               ANAISOn = Main.ANAISTraverse!=null && Main.ANAISTraverse.Field("_navState").GetValue().ToString() != "DEFAULT";
+                ANAIS_State_Enum anais_State_Old = _anais_State;
+
+                if (Main.ANAISTraverse==null)
+                {
+                    _anais_State = ANAIS_State_Enum.Off;
+                }
+                else
+                {
+                    switch ( Main.ANAISTraverse.Field("_navState").GetValue().ToString())
+                    {
+                        case "DEFAULT": _anais_State =ANAIS_State_Enum.Off; break;
+                        case "ANAIS_TRANSFER_PLANNED": _anais_State =ANAIS_State_Enum.OrbitChange; break;
+                        default: _anais_State =ANAIS_State_Enum.FinalApproach; break;
+                    }
+                }
+
+                if (_anais_State == ANAIS_State_Enum.Off) _assistANAIS=false;
+                if (anais_State_Old != _anais_State) AssistChanged();
             }
 
             public static void AssistOff()
@@ -730,8 +832,8 @@ namespace ThrustAssistMod
                     _assistANAIS_Button = SFS.UI.ModGUI.Builder.CreateButton(assistSelect_Container,60,30,0,0,AssistANAIS_Button_Click,"ANAIS");
                 }
 
-                _targetHeight_UDV = new _UpDownValueLog(window, "H: {0:F1} m", 32 , 1, 1024,10,0.5);
-                _targetHeight_UDV.MinText = "H: Surface";
+                _minDistance_UDV = new _UpDownValueLog(window, "H: {0:F1} m", 32 , 1, 1024,10,0.5);
+                _minDistance_UDV.MinText = "H: Surface";
                 _landingVelocity_UDV = new _UpDownValueLog(window, "Land at: {0:N1} m/s", 4, 1.0 , 10);
                 _targetThrottle_UDV = new _UpDownValueLog(window, "Throttle: {0:P0}", 0.8, 0.05 , 1.0, 15);
 
