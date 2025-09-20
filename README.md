@@ -3,23 +3,34 @@
 Thrust assistance mod for Spaceflight Simulator 1
 
 **Marker off**
+
 ![User Interface](Images/UI_MarkerOff.png)
 
 **Marker on**
+
 ![User Interface](Images/UI_MarkerOn.png)
 
+**ANAIS**
+
+![User Interface](Images/UI_ANAIS.png)
 
 **Assist** Selects the type of assistance
 * 'Off' Switch assistance off (manual control)
 * 'Surf' Assist with landing on the surface (i.e vertical velocity with respect to the planet)
 * 'Mark' Assist with de-orbiting to land at the selected marker (i.e horizontal velocity with respect to the planet). Visible when the marker is enabled.
+* 'ANAIS' Assist with orbit changes or final approach when using the ANAIS mod.
 
 If _surface_ assistance is selected, taking the orientation of the rocket into account, this mod will set the thrust to attempt to reach 0 m/s vertical velocity at the specified altitude. If the altitude is set to _surface_ (the minimum altitude) it will attempt to land at the specified velocity.
 
 If _marker_ assistance is selected, taking the orientation of the rocket into account, this mod will set the thrust to attempt to reach 0 m/s horizontal velocity at the specified mark.
 
-**Height** The target altitude, only used for _surface_ assistance. N.B. this is from approximately the bottom of the rocket (CoM-'radius'), not the CoM.
-* <<< _set minimum value_ i.e. attempt to land
+If _ANAIS_ assistance is selected, the action taken depends on whether the current velocity arrow is for an orbit change or a final approach. Note - the ANAIS button will only appear if an ANAIS velocity arrow would appear in the spacecraft view.
+* For an orbit change, this mod will set the thrust to 100% until the target velocity would be reached within 3 seconds. Then it will adjust the throttle to maintain the 3 seconds to target until the rocket is within 0.05 m/s of the target velocity. This results in the throttle steadily decreasing until the target is reached allowing for precision.
+* For final approach, this mod will set the thrust to attempt to reach 0 m/s velocity at the specified distance. Note that the distance used takes into account the 'radius' of both spacecraft so that closest approach of any part of either spacecraft will be this value. This may result in stopping a bit short depending on the current orientation of the spacecraft.
+* In both cases the ignition will only be turned on if at least 95% of the thrust is in the correct direction (i.e. within about 13 deg). This allows for small adjustments on final approach to reduce the closest approach distance.
+
+**H** or **D** The target altitude or distance, only used for _surface_ or _ANAIS_ (D = distance for ANAIS) assistance. N.B. for _surface_, this is from approximately the bottom of the rocket (CoM-'radius'), not the CoM.
+* <<< _set minimum value_ i.e. attempt to land ( _surface_ ) or close as possible ( _ANAIS_ )
 * << _reduce value_
 * < _reduce value by 0.5m_
 * \> _increase value by 0.5m_
@@ -32,7 +43,8 @@ If _marker_ assistance is selected, taking the orientation of the rocket into ac
 * \> _increase value_
 * \>\> _set maximum value_
 
-**Throttle** The target throttle to be used. This is used to estimate the velocity needed.
+**Throttle** The target throttle to be used. This is used to estimate the velocity needed. Not used for ANAIS orbit changes.
+
 (controls as land at)
 
 **Marker** Enable the landing marker. When enabled will show the position of the current marker.
@@ -63,4 +75,3 @@ The following example is for a Lunar landing in Normal starting from a 10km orbi
 
 For more efficient landing or with lower thrust you might want to angle a bit up from prograde once descending and maybe adjust the marker position. It will require a little practice to get this right.
 
-Future plans include providing thrust assistance when approaching a target.
