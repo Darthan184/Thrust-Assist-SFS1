@@ -245,6 +245,7 @@ namespace ThrustAssistMod
             private static bool _assistANAIS=false;
             private static bool _assistSurface=false;
             private static bool _assistMark=false;
+            private static bool _assistWasOff=true;
             private static SFS.UI.ModGUI.Button _assistANAIS_Button;
             private static SFS.UI.ModGUI.Button _assistMark_Button;
             private static SFS.UI.ModGUI.Button _assistOff_Button;
@@ -278,11 +279,13 @@ namespace ThrustAssistMod
                     if (!_assistSurface && !_assistMark && !_assistANAIS)
                     {
                         _assistOff_Button.Text="Off";
-                        ThrustAssistMod.Updater.SwitchOff();
+                        if (!_assistWasOff) ThrustAssistMod.Updater.SwitchOff();
+                        _assistWasOff=true;
                     }
                     else
                     {
                         _assistOff_Button.Text="off";
+                        _assistWasOff=false;
                     }
 
                     if (_assistSurface)
