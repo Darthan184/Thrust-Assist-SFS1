@@ -8,27 +8,22 @@
         public UnityEngine.Vector2Int windowPosition = new UnityEngine.Vector2Int( -850, -500 );
     }
 
-    public static class SettingsManager
+    public class SettingsManager : UITools.ModSettings<UserSettings>
     {
-        public static readonly SFS.IO.FilePath Path = ThrustAssistMod.Main.modFolder.ExtendToFile("settings.txt");
-        public static UserSettings settings;
+        public static SettingsManager Main { get; private set; }
+        public static System.Action Save { get; private set; }
 
-        public static void Load()
+        protected override SFS.IO.FilePath SettingsFile => new SFS.IO.FolderPath(ThrustAssistMod.Main.main.ModFolder).ExtendToFile("Settings.txt");
+
+        public static void Init()
         {
-            if (!SFS.Parsers.Json.JsonWrapper.TryLoadJson(Path, out settings) && Path.FileExists())
-            {
-                UnityEngine.Debug.Log("Thrust Assist: Settings file invalid or not found, using defaults.");
-            }
-
-            settings = settings ?? new UserSettings();
-            Save();
+            Main = new SettingsManager();
+            Main.Initialize();
         }
 
-        public static void Save()
+        protected override void RegisterOnVariableChange(System.Action onChange)
         {
-            if (settings == null)
-                Load();
-            Path.WriteText(SFS.Parsers.Json.JsonWrapper.ToJson(settings, true));
+            UnityEngine.Application.quitting += Save = onChange;
         }
     }
 }

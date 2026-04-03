@@ -59,7 +59,7 @@ namespace ThrustAssistMod
                                 Double2 velocity =
                                     location.velocity.Rotate(0.0 - (location.position.AngleRadians - System.Math.PI / 2.0));
                                 double gravity = -location.planet.GetGravity(location.Radius);
-                                double height =  location.TerrainHeight - rocket.GetSizeRadius();
+                                double height =  location.GetTerrainHeight(true) - rocket.GetSizeRadius();
                                 double centrifugal = velocity.x*velocity.x/location.Radius;
 
                                 foreach (SFS.Parts.Modules.EngineModule oneEngine in rocket.partHolder.GetModules<SFS.Parts.Modules.EngineModule>())

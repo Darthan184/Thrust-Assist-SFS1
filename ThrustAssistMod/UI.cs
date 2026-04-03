@@ -390,7 +390,7 @@ namespace ThrustAssistMod
 
                 foreach(SFS.World.Maps.Landmark oneLandmark in planet.landmarks)
                 {
-                    angles.Add(ThrustAssistMod.Utility.NormaliseAngle(oneLandmark.data.angle)); // degrees? radians?, assume degrees
+                    angles.Add(ThrustAssistMod.Utility.NormaliseAngle(oneLandmark.data.Center)); // degrees? radians?, assume degrees
                 }
 
                 foreach(SFS.World.Rocket oneRocket in SFS.World.GameManager.main.rockets)
